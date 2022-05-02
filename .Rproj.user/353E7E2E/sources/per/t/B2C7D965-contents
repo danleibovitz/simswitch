@@ -1,0 +1,238 @@
+@article{robins_ipcw,
+ ISSN = {0006341X, 15410420},
+ URL = {http://www.jstor.org/stable/2676922},
+ abstract = {AIDS Clinical Trial Group (ACTG) randomized trial 021 compared the effect of bactrim versus aerosolized pentamidine (AP) as prophylaxis therapy for pneumocystis pneumonia (PCP) in AIDS patients. Although patients randomized to the bactrim arm experienced a significant delay in time to PCP, the survival experience in the two arms was not significantly different (p = .32). In this paper, we present evidence that bactrim therapy improves survival but that the standard intent-to-treat comparison failed to detect this survival advantage because a large fraction of the subjects either crossed over to the other therapy or stopped therapy altogether. We obtain our evidence of a beneficial bactrim effect on survival by artificially regarding the subjects as dependently censored at the first time the subject either stops or switches therapy; we then analyze the data with the inverse probability of censoring weighted Kaplan-Meier and Cox partial likelihood estimators of Robins (1993, Proceedings of the Biopharmaceutical Section, American Statistical Association, pp. 24-33) that adjust for dependent censoring by utilizing data collected on time-dependent prognostic factors.},
+ author = {James M. Robins and Dianne M. Finkelstein},
+ journal = {Biometrics},
+ number = {3},
+ pages = {779--788},
+ publisher = {[Wiley, International Biometric Society]},
+ title = {Correcting for Noncompliance and Dependent Censoring in an AIDS Clinical Trial with Inverse Probability of Censoring Weighted (IPCW) Log-Rank Tests},
+ volume = {56},
+ year = {2000}
+}
+
+
+
+@article{robins_rpsftm,
+author = { James M.   Robins  and  Anastasios A.   Tsiatis },
+title = {Correcting for non-compliance in randomized trials using rank preserving structural failure time models},
+journal = {Communications in Statistics - Theory and Methods},
+volume = {20},
+number = {8},
+pages = {2609-2631},
+year  = {1991},
+publisher = {Taylor & Francis},
+doi = {10.1080/03610929108830654},
+
+URL = {
+        https://doi.org/10.1080/03610929108830654
+
+},
+eprint = {
+        https://doi.org/10.1080/03610929108830654
+
+}
+
+}
+
+
+@article{latimer_tse,
+author = {Latimer, Nicholas and Abrams, K.R. and Siebert, Uwe},
+year = {2019},
+month = {03},
+pages = {},
+title = {Two-stage estimation to adjust for treatment switching in randomised trials: A simulation study investigating the use of inverse probability weighting instead of re-censoring},
+volume = {19},
+journal = {BMC Medical Research Methodology},
+doi = {10.1186/s12874-019-0709-9}
+}
+
+@article{latimer_approaches,
+title={TREATMENT SWITCHING: STATISTICAL AND DECISION-MAKING CHALLENGES AND APPROACHES}, volume={32}, DOI={10.1017/S026646231600026X}, number={3}, journal={International Journal of Technology Assessment in Health Care}, publisher={Cambridge University Press}, author={Latimer, Nicholas R. and Henshall, Chris and Siebert, Uwe and Bell, Helen}, year={2016}, pages={160–166}}
+
+@article{sullivan_review,
+title = {Adjusting for Treatment Switching in Oncology Trials: A Systematic Review and Recommendations for Reporting},
+journal = {Value in Health},
+volume = {23},
+number = {3},
+pages = {388-396},
+year = {2020},
+issn = {1098-3015},
+doi = {https://doi.org/10.1016/j.jval.2019.10.015},
+url = {https://www.sciencedirect.com/science/article/pii/S1098301519352180},
+author = {Thomas R. Sullivan and Nicholas R. Latimer and Jodi Gray and Michael J. Sorich and Amy B. Salter and Jonathan Karnon},
+keywords = {economic evaluation, statistical methods, survival analysis, technology assessment, treatment switching},
+abstract = {Objectives
+To systematically review the quality of reporting on the application of switching adjustment approaches in published oncology trials and industry submissions to the National Institute for Health and Care Excellence Although methods such as the rank preserving structural failure time model (RPSFTM) and inverse probability of censoring weights (IPCW) have been developed to address treatment switching, the approaches are not widely accepted within health technology assessment. This limited acceptance may partly be a consequence of poor reporting on their application.
+Methods
+Published trials and industry submissions were obtained from searches of PubMed and nice.org.uk, respectively. The quality of reporting in these studies was judged against a checklist of reporting recommendations, which was developed by the authors based on detailed considerations of the methods.
+Results
+Thirteen published trials and 8 submissions to nice.org.uk satisfied inclusion criteria. The quality of reporting around the implementation of the RPSFTM and IPCW methods was generally poor. Few studies stated whether the adjustment approach was prespecified, more than a third failed to provide any justification for the chosen method, and nearly half neglected to perform sensitivity analyses. Further, it was often unclear how the RPSFTM and IPCW methods were implemented.
+Conclusions
+Inadequate reporting on the application of switching adjustment methods increases uncertainty around results, which may contribute to the limited acceptance of these methods by decision makers. The proposed reporting recommendations aim to support the improved interpretation of analyses undertaken to adjust for treatment switching.}
+}
+
+@article{latimer_recens,
+author = {Latimer, Nicholas and Abrams, K.R. and Siebert, Uwe},
+year = {2019},
+month = {03},
+pages = {},
+title = {Two-stage estimation to adjust for treatment switching in randomised trials: A simulation study investigating the use of inverse probability weighting instead of re-censoring},
+volume = {19},
+journal = {BMC Medical Research Methodology},
+doi = {10.1186/s12874-019-0709-9}
+}
+
+
+@article{latimer_oncology,
+author = {Latimer, Nicholas},
+year = {2015},
+month = {04},
+pages = {1-4},
+title = {Treatment switching in oncology trials and the acceptability of adjustment methods},
+volume = {15},
+journal = {Expert review of pharmacoeconomics & outcomes research},
+doi = {10.1586/14737167.2015.1037835}
+}
+
+
+
+@ARTICLE{helsinki,
+	author = {World Medical Association.},
+	journal = {Bulletin of the World Health Organization},
+	title = {World Medical Association Declaration of Helsinki. Ethical principles for medical research involving human subjects.},
+	volume = {79},
+	year = {2001},
+	number = {4},
+	publisher = {World Health Organization},
+	type = {Journal / periodical articles},
+	pages = {373 - 374}
+}
+
+
+
+
+@article{hernan_selectionbias,
+author = {Miguel A Hernán and Sonia Hernández-Díaz},
+title ={Beyond the intention-to-treat in comparative effectiveness research},
+journal = {Clinical Trials},
+volume = {9},
+number = {1},
+pages = {48-55},
+year = {2012},
+doi = {10.1177/1740774511420743},
+    note ={PMID: 21948059},
+
+URL = {
+        https://doi.org/10.1177/1740774511420743
+
+},
+eprint = {
+        https://doi.org/10.1177/1740774511420743
+
+}
+,
+    abstract = { Background The intention-to-treat comparison is the primary, if not the only, analytic approach of many randomized clinical trials.Purpose To review the shortcomings of intention-to-treat analyses, and of ‘as treated’ and ‘per protocol’ analyses as commonly implemented, with an emphasis on problems that are especially relevant for comparative effectiveness research.Methods and Results In placebo-controlled randomized clinical trials, intention-to-treat analyses underestimate the treatment effect and are therefore nonconservative for both safety trials and noninferiority trials. In randomized clinical trials with an active comparator, intention-to-treat estimates can overestimate a treatment’s effect in the presence of differential adherence. In either case, there is no guarantee that an intention-to-treat analysis estimates the clinical effectiveness of treatment. Inverse probability weighting, g-estimation, and instrumental variable estimation can reduce the bias introduced by nonadherence and loss to follow-up in ‘as treated’ and ‘per protocol’ analyses.Limitations These analyse require untestable assumptions, a dose-response model, and time-varying data on confounders and adherence.Conclusions We recommend that all randomized clinical trials with substantial lack of adherence or loss to follow-up are analyzed using different methods. These include an intention-to-treat analysis to estimate the effect of assigned treatment and ‘as treated’ and ‘per protocol’ analyses to estimate the effect of treatment after appropriate adjustment via inverse probability weighting or g-estimation. }
+}
+
+
+
+
+
+@article{latimer_sim,
+author = {Nicholas R Latimer and KR Abrams and PC Lambert and MJ Crowther and AJ Wailoo and JP Morden and RL Akehurst and MJ Campbell},
+title ={Adjusting for treatment switching in randomised controlled trials – A simulation study and a simplified two-stage method},
+journal = {Statistical Methods in Medical Research},
+volume = {26},
+number = {2},
+pages = {724-751},
+year = {2017},
+doi = {10.1177/0962280214557578},
+    note ={PMID: 25416688},
+
+URL = {
+        https://doi.org/10.1177/0962280214557578
+
+},
+eprint = {
+        https://doi.org/10.1177/0962280214557578
+
+}
+,
+    abstract = { Estimates of the overall survival benefit of new cancer treatments are often confounded by treatment switching in randomised controlled trials (RCTs) – whereby patients randomised to the control group are permitted to switch onto the experimental treatment upon disease progression. In health technology assessment, estimates of the unconfounded overall survival benefit associated with the new treatment are needed. Several switching adjustment methods have been advocated in the literature, some of which have been used in health technology assessment. However, it is unclear which methods are likely to produce least bias in realistic RCT-based scenarios. We simulated RCTs in which switching, associated with patient prognosis, was permitted. Treatment effect size and time dependency, switching proportions and disease severity were varied across scenarios. We assessed the performance of alternative adjustment methods based upon bias, coverage and mean squared error, related to the estimation of true restricted mean survival in the absence of switching in the control group. We found that when the treatment effect was not time-dependent, rank preserving structural failure time models (RPSFTM) and iterative parameter estimation methods produced low levels of bias. However, in the presence of a time-dependent treatment effect, these methods produced higher levels of bias, similar to those produced by an inverse probability of censoring weights method. The inverse probability of censoring weights and structural nested models produced high levels of bias when switching proportions exceeded 85\%. A simplified two-stage Weibull method produced low bias across all scenarios and provided the treatment switching mechanism is suitable, represents an appropriate adjustment method. }
+}
+
+@article{latimer_sim2,
+author = {Nicholas R Latimer and Keith R Abrams and Paul C Lambert and James P Morden and Michael J Crowther},
+title ={Assessing methods for dealing with treatment switching in clinical trials: A follow-up simulation study},
+journal = {Statistical Methods in Medical Research},
+volume = {27},
+number = {3},
+pages = {765-784},
+year = {2018},
+doi = {10.1177/0962280216642264},
+    note ={PMID: 27114326},
+
+URL = {
+        https://doi.org/10.1177/0962280216642264
+
+},
+eprint = {
+        https://doi.org/10.1177/0962280216642264
+
+}
+,
+    abstract = { When patients randomised to the control group of a randomised controlled trial are allowed to switch onto the experimental treatment, intention-to-treat analyses of the treatment effect are confounded because the separation of randomised groups is lost. Previous research has investigated statistical methods that aim to estimate the treatment effect that would have been observed had this treatment switching not occurred and has demonstrated their performance in a limited set of scenarios. Here, we investigate these methods in a new range of realistic scenarios, allowing conclusions to be made based upon a broader evidence base. We simulated randomised controlled trials incorporating prognosis-related treatment switching and investigated the impact of sample size, reduced switching proportions, disease severity, and alternative data-generating models on the performance of adjustment methods, assessed through a comparison of bias, mean squared error, and coverage, related to the estimation of true restricted mean survival in the absence of switching in the control group. Rank preserving structural failure time models, inverse probability of censoring weights, and two-stage methods consistently produced less bias than the intention-to-treat analysis. The switching proportion was confirmed to be a key determinant of bias: sample size and censoring proportion were relatively less important. It is critical to determine the size of the treatment effect in terms of an acceleration factor (rather than a hazard ratio) to provide information on the likely bias associated with rank-preserving structural failure time model adjustments. In general, inverse probability of censoring weight methods are more volatile than other adjustment methods. }
+}
+
+
+
+
+
+
+
+
+@article{latimer_sim3,
+author = {NR Latimer and IR White and K Tilling and U Siebert},
+title ={Improved two-stage estimation to adjust for treatment switching in randomised trials: g-estimation to address time-dependent confounding},
+journal = {Statistical Methods in Medical Research},
+volume = {29},
+number = {10},
+pages = {2900-2918},
+year = {2020},
+doi = {10.1177/0962280220912524},
+    note ={PMID: 32223524},
+
+URL = {
+        https://doi.org/10.1177/0962280220912524
+
+},
+eprint = {
+        https://doi.org/10.1177/0962280220912524
+
+}
+,
+    abstract = { In oncology trials, control group patients often switch onto the experimental treatment during follow-up, usually after disease progression. In this case, an intention-to-treat analysis will not address the policy question of interest – that of whether the new treatment represents an effective and cost-effective use of health care resources, compared to the standard treatment. Rank preserving structural failure time models (RPSFTM), inverse probability of censoring weights (IPCW) and two-stage estimation (TSE) have often been used to adjust for switching to inform treatment reimbursement policy decisions. TSE has been applied using a simple approach (TSEsimp), assuming no time-dependent confounding between the time of disease progression and the time of switch. This is problematic if there is a delay between progression and switch. In this paper we introduce TSEgest, which uses structural nested models and g-estimation to account for time-dependent confounding, and compare it to TSEsimp, RPSFTM and IPCW. We simulated scenarios where control group patients could switch onto the experimental treatment with and without time-dependent confounding being present. We varied switching proportions, treatment effects and censoring proportions. We assessed adjustment methods according to their estimation of control group restricted mean survival times that would have been observed in the absence of switching. All methods performed well in scenarios with no time-dependent confounding. TSEgest and RPSFTM continued to perform well in scenarios with time-dependent confounding, but TSEsimp resulted in substantial bias. IPCW also performed well in scenarios with time-dependent confounding, except when inverse probability weights were high in relation to the size of the group being subjected to weighting, which occurred when there was a combination of modest sample size and high switching proportions. TSEgest represents a useful addition to the collection of methods that may be used to adjust for treatment switching in trials in order to address policy-relevant questions. }
+}
+
+
+@article{breslow,
+ ISSN = {03067734, 17515823},
+ URL = {http://www.jstor.org/stable/1402659},
+ abstract = {Methodology is reviewed for the statistical analysis of censored survival data which arise from a model in which the factors under investigation act multiplicatively on the hazard function of an underlying non-parametric survival distribution. This flexible approach provides computationally feasible solutions to the following problems: (i) one-sample problem (relative death rate); (ii) multi-sample problem; (iii) regression with continuous covariates; (iv) regression in matched-pair designs; (v) evaluation of changes in treatment or prognostic status (time dependent covariates). For the multi-sample problem with stratification, numerical results are presented contrasting maximum likelihood with simple chi-square analyses. While several of the methods described have been used on an ad hoc basis for many years, study of their common theoretical underpinnings has commenced only recently. /// Cet article présente une revue des méthodes utilisées pour l'analyse statistique d'observations censurées de durée de vie, qui résultent d'un modèle où les facteurs étudiés agissent multiplicativement sur la fonction de hasard d'une distribution non paramétrique sous-jacente du nombre de survivants. Cette approche flexible fournit des solutions aisément calculables aux problèmes suivants: (1) problème portant sur un seul échantillon (relatif au taux de décès); (2) problème à plusieurs échantillons; (3) régression à variables continues; (4) régression dans les plans avec observation par paire; (5) évaluation de la modification du traitement ou du pronostic (covariables dépendant du temps). Dans le problème à plusieurs échantillons avec stratification, des exemples numériques sont présentés, qui confrontent le maximum de vraisemblance aux méthodes plus simples d'analyse de khi-carré. Bien que plusieurs des méthodes décrites aient été utilisées sur une base convenable pendant de nombreuses années, une étude de leur rattachement théorique commun n'a commencé que récemment.},
+ author = {N. E. Breslow},
+ journal = {International Statistical Review / Revue Internationale de Statistique},
+ number = {1},
+ pages = {45--57},
+ publisher = {[Wiley, International Statistical Institute (ISI)]},
+ title = {Analysis of Survival Data under the Proportional Hazards Model},
+ volume = {43},
+ year = {1975}
+}
+
+@misc{latimer_recensor,
+title={To re-censor, or not to re-censor, that is the question: Critical considerations when applying statistical methods to adjust for treatment switching in clinical trials}, url={https://figshare.shef.ac.uk/articles/poster/To_re-censor_or_not_to_re-censor_that_is_the_question_Critical_considerations_when_applying_statistical_methods_to_adjust_for_treatment_switching_in_clinical_trials/11897421/1}, DOI={10.15131/shef.data.11897421.v1}, abstractNote={To determine when re-censoring should be incorporated in statistical analyses undertaken to adjust for treatment switching in randomised controlled trials, and to demonstrate the utility of inverse probability weighting (IPW) as an alternative to re-censoring. Treatment switching often has a crucial impact on estimates of the effectiveness and cost-effectiveness of new oncology treatments (Figure 1). Switching adjustment methods such as rank preserving structural failure time models (RPSFTM) and two-stage estimation (TSE) estimate ‘counterfactual’ (i.e. in the absence of switching) survival times and incorporate re-censoring to guard against informative censoring in the counterfactual dataset. However, recensoring often involves a loss of longer term survival information which is problematic when estimates of longterm survival effects are required}, publisher={The University of Sheffield}, author={Latimer, Nicholas and Abrams, K.R.}, year={2020}, month={Feb} }
+
+
+

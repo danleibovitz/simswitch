@@ -1,0 +1,22 @@
+"0","knitr::opts_chunk$set(echo = TRUE)"
+"0",""
+"0","library(knitr)"
+"0","library(kableExtra)"
+"0","library(DiagrammeR)"
+"2","Registered S3 method overwritten by 'htmlwidgets':
+  method           from         
+  print.htmlwidget tools:rstudio
+"
+"0","library(cowplot)"
+"2","
+Attachement du package : ‘cowplot’
+
+"
+"2","L'objet suivant est masqué depuis ‘package:ggpubr’:
+
+    get_legend
+
+"
+"0","library(MASS)"
+"0",""
+"0",""

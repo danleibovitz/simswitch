@@ -1,0 +1,711 @@
+---
+title: "**simswitch** Manuscript"
+author: "Daniel Leibovitz"
+date: "26/10/2021"
+output: 
+  bookdown::html_document2:
+    toc: true
+bibliography: switchrefs.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(knitr)
+library(kableExtra)
+library(DiagrammeR)
+library(cowplot)
+library(MASS)
+
+
+```
+
+# TODO
+description of naive and complex methods -- table?
+full list of method assumptions
+for figures: title, description, figure number reference
+AP wants info on parameters used in figures 2 & 3? this makes no sense, these are abstract
+
+# Abstract
+Treatment switching refers to the phenomenon in which participants in a randomized controlled trial switch from their randomly assigned treatment arm to an alternate treatment. Typically, in trials comparing a novel treatment to a control, treatment switching only occurs from control to experimental arms and does not occur randomly. In this case, the standard causal Intention-To-Treat analysis gives conservatively biased estimates of treatment effects (TODO CITE). Several methods have been developed for the estimation of treatment effects under conditions of treatment switching (Inverse Probability of Censoring Weighting and Rank-Preserving Structural Failure Time Models, both by Robins et al. [@robins_ipcw; @robins_rpsftm], and the Two-Stage Estimator, by Latimer et al. [@latimer_tse]). When the assumptions of these methods are met, they each provide unbiased estimates of treatment effects in the presence of treatment switching.  However, the assumptions of each of these methods are untestable (TODO which are untestable?). When the assumptions are not met, the estimates are again biased (TODO biased how?). Users of these methods must make informed decisions about which methods’ assumptions are most likely to be violated, by what magnitude each assumption may be violated, and how much bias each violation is likely to add to the final treatment effect estimate; moreover, users must often make these decisions at the design stage of a trial, before data collection. In this paper, we present a simulator which quantifies method-specific bias on survival data generated from given parameters. This tool aims to help statisticians choose appropriate methods for the adjustment of treatment switching by considering study-specific characteristics such as, e.g., the proportion of participants switching, or the anticipated treatment effect of an intervention.
+
+ 
+<br>
+<br>
+<br>
+
+# Introduction
+
+The phenomenon of treatment switching in randomized controlled trials (RCTs), where participants switch from their randomly assigned treatment arm to an alternate treatment, is common in modern pharmaceutical research (@latimer_approaches) and especially in oncology research (@sullivan_review; @latimer_oncology). Treatment switching occurs mostly due to ethical concerns; As per the Declaration of Helsinki on the rights of human participants in medical experiments, the best interest of individual participants in a study takes precedent over the goals of the study itself (@helsinki). In practice, this typically leads to participants switching from a control arm treatment to an experimental treatment after some kind of marker of disease progression.
+
+Treatment switching is therefore common, but creates difficulties from an analytic perspective for the estimation of long-term time-to-event endpoints, such as overall survival. More specifically, in the presence of treatment switching, traditional methods for estimating treatment effects in RCTs -- namely, the Intention-To-Treat analysis (ITT) and the Per-Protocol analysis (PP) -- incur selection bias (@hernan_selectionbias). More advanced methods are therefore required to address the effects of treatment switching. Over the past 30 years, three main approaches have been advanced -- the Inverse Probability of Censoring Weighting model (IPCW), the Rank-Preserving Structural Failure Time Model (RPSFTM) and the Two-Stage Estimation model (TSE) (@robins_ipcw; @robins_rpsftm; @latimer_tse). Each of these approaches provides unbiased treatment effect estimates provided their assumptions are met (for description of assumptions, see Table 1 TODO is this a complete list?). However, the assumptions of each of these methods are restrictive and may be unrealistic. Moreover, they are untestable, meaning statisticians who employ these methods cannot easily quantify the degree to which the assumptions of these methods have been violated.
+
+
+```{r assumptions, echo=FALSE, fig.align='center', out.width="70%"}
+knitr::include_graphics("assumptions.png")
+
+
+```
+
+Based upon our review of the literature to date, the approach to employing these methods has been (I) to use heuristics and clinical expertise, and (II) to simulate RCT data and observe method-associated bias under controlled circumstances (@latimer_sim; @latimer_sim2, @latimer_sim3). However, the simulators and simulation approaches used have not been made public, and users wishing to take the simulation approach must therefore recreate a simulator from scratch or rely upon previously published simulation results.
+
+We attempt to solve this problem in the current paper by presenting simswitch, an open-source, publicly available simulator written in the programming language R which:
+
+I) Simulates realistic discrete-time survival data, with and without treatment switching
+II) Automatically implements the three common advanced methods of controlling for treatment switching, the IPCW, the RPSFTM, and the TSE
+III) Estimates the bias of all methods implemented via counterfactual comparison
+
+TODO what is the simulator useful for? study design, SAP, etc.
+
+The remainder of this paper is divided into 4 sections: (1) A description of simswitch's internal architecture; (2) A guide to the usage of simswitch; (3) An illustration of the simswitch outputs, including a series of case studies; (4) A discussion of current applications and future developments.
+
+<br>
+<br>
+<br>
+
+# Methodological Framework
+
+The simswitch simulator functions in two main steps: A data-generation step, and an analysis step. The data-generation step takes up the bulk of the simulation runtime and produces discrete-time survival data according to user-specified parameters. The analysis step runs all five traditional and advanced methods for estimating the treatment effect in the simulated data, and returns these estimates, as well as their estimated bias, to the user.
+
+
+
+```{r structure, echo=FALSE, fig.align='center', out.width="80%"}
+knitr::include_graphics("structure.png")
+
+
+```
+
+
+<br>
+<br>
+
+## Step 1:  Data-Generation Step
+
+In the data-generation step, the simulator generates two counterfactual data sets -- one where treatment switching is permitted, and the other where treatment switching is disallowed (Figure 1). The dynamics which generate the two datasets are otherwise identical, and the resulting data sets are therefore comparable in all respects except for with regards to treatment switching. 
+
+TODO why are we creating two datasets?
+
+Each data set is generated iteratively (Figures 2 & 3). All data is generated in discrete time, with the number of follow-up periods specified by the user. From this point on, we will refer to these follow-up period as a "time-step". For each of the two data sets produced, the process begins at time-step 1; the data produced in each subsequent step is generated as a function of the data in the previous step (i.e., data in time-step 2 is generated as a function of data in time-step 1, data in time-step 3 as a function of data in time-step 2, etc.), up to a maximum user-specified study end-time. This process is depicted in Figure 2 for the generation of data with treatment switching, and in Figure 3 for the generation of data without treatment switching.
+
+As depicted in Figures 2 & 3, in the simulated dataset with treatment switching, treatment at time _i_ is dependent on all covariates at time _i_, and in turn influences covariates at time _i + 1_. In the simulated dataset without treatment switching, this dependency is broken, and covariates and treatment are mutually independent at all times.
+
+<br>
+<br>
+<br>
+
+<center> <h3> Figure 2: Graph of Data-Generation Process with Treatment-Switching Permitted </h3> </center>
+```{r diag_switch, echo=FALSE,  fig.align='center', out.width="80%"}
+knitr::include_graphics("diag_switch.png")
+
+
+```
+<br>
+<br>
+<br>
+
+<center> <h3> Figure 3: Graph of Data-Generation Process with Treatment-Switching Disallowed </h3> </center>
+```{r diag_control, echo=FALSE,  fig.align='center', out.width="80%"}
+knitr::include_graphics("diag_control.png")
+
+
+```
+<br>
+<br>
+<br>
+
+Once the pair of datasets are generated, the simswitch algorithm checks the status of each of four event-rates. These event-rates are: (I) The control-group event-rate, (II) the experimental-group event-rate, (III) The switching event-rate, and (IV) The disease-progression event-rate. Each event-rate has an associated default or user-specified window of acceptability; if the value falls within the window of acceptability, the associated hazard function is left unadjusted. If any of the event-rates do not fall within the window of acceptability, their respective hazard is adjusted, and the data-generation process begins again with the updated hazard. This process of checking and regenerating simulated data is depicted in Figure 4.
+
+The four event-rates are the result of three survival functions generated by Cox Hazards models. Generally, the survival function $S_e$ for event $e$ can be written as:
+
+$$S_e(T_i) = exp(-H_{e,0}(T_i)exp(\boldsymbol{X}_i\boldsymbol{\beta})$$
+
+
+where $H_{e,0}(T_i) = \int^t_0 h_{e,0}(s)ds$ is the cumulative baseline hazard for event $e$ evaluated at $t$, $\boldsymbol{X}_i$ is a vector of covariates for patient $i$, and  $\boldsymbol{\beta}$ is a set of population-level parameters. We can reformulate these as proportional hazard functions:
+
+$$b_i(t) = b_0(t)exp(\mathbf{X}_{t,i}\boldsymbol{\beta}_{b}) $$
+$$s_i(t) = s_0(t)exp(\mathbf{X}_{t,i}\boldsymbol{\beta}_{s}) $$
+$$d_i(t) = d_0(t)exp(\mathbf{X}_{t,i}\boldsymbol{\beta}_{d}) $$
+
+where $b_i(t)$, $s_i(t)$ and $d_i(t)$ are the hazard of a baseline event (death), switching, and disease progression for patient $i$ at time $t$. The above hazard functions can be generalized to both time-dependent and patient-dependent scenarios, such that, for a hazard function $h_i(t)$ representing any of the above functions, the hazard can be rewritten as:
+
+$$h_i(t) = h_0(t)exp(\mathbf{X}_{t,i}\boldsymbol{\beta}_{h,t,i})$$
+
+In specifying a simulation through simswitch, the user has control over the baseline hazards $b_i$, $s_i$, and $d_i$ ; over the coefficients $\beta_b$, $\beta_s$, and $\beta_d$; and indirectly over covariates $X_t$ through the data-generating process $f(X_{t-1})$.
+
+There is no theoretical guarantee that simswitch will converge to appropriate event-rates in reasonable time, and users must be mindful of setting contradictory parameters. For example, a user may specify a low switching hazard $s_i$ and a high switching proportion target, requiring the simswitch algorithm to iteratively increase the hazard $s_i$ until the target is reached. Depending on the magnitude of the original hazard $s_i$, this may be prohibitively time-consuming.
+
+<br>
+<br>
+<br>
+
+<center> <h3> Figure 4: Simulation Diagram Iteration Cycle </h3> </center>
+```{r iteration_cycle, echo=FALSE,  fig.align='center', out.width="80%"}
+
+knitr::include_graphics("iteration_cycle.png")
+
+
+```
+ 
+<br>
+<br>
+<br>
+
+Data generated by the simulator has the structure shown in Table 2. Here we observe a subset of data output by simswitch. Three patients are shown, each designated by their value in the 'ids' column. Treatment information is shown in column 'treat', with 1 indicating treatment received and 0 indicating no treatment. Columns 'b1' and 'b2' represent continuous baseline covariates (e.g., age at study entry, ), 'v1' and 'v2' represent continuous time-varying covariates, and column 'M' represents disease progression. Finally, column 'status' indicates whether a patient observes an event (1) or is censored (0), and column 'eventtime' the time at which event or censorship occurs.
+
+<center> <h3> Table 2: Simulated Dataset Example </h3> </center>
+```{r real_data, echo=FALSE,  fig.align='center', out.width="80%"}
+
+df <- data.frame(ids = rep(1:3, each=3),
+                 time = rep(1:3, 3),
+                 treat = c(rep(1,6), rep(0,3)),
+                 b1 = c(rep(0.27, 3), rep(0.72, 3), rep(0.84, 3)),
+                 b2 = c(rep(0.42, 3), rep(-0.37, 3), rep(0.76, 3)),
+                 M = c(0,0,0,0,1,1,0,0,1),
+                 v1 = signif(runif(9,-1,2), 2),
+                 v2 = signif(runif(9,-1,2), 2),
+                 eventtime = c(rep(2.5, 3), rep(3, 3), rep(1.2, 3)),
+                 status = c(rep(1, 3), rep(0, 3), rep(0, 3)))
+kbl(df) %>%
+  kable_paper()
+
+# knitr::include_graphics("real_data.png")
+
+
+```
+
+
+<br>
+<br>
+<br>
+
+## Step 2: Analysis Step
+
+In the analysis step, both traditional methods -- the ITT and the PP -- as well as all advanced methods -- the IPCW, the RPSFTM, and the TSE -- are applied to the dataset _with_ treatment switching, and the results compared to analogous results from an unbiased analysis of the dataset _without_ treatment switching. The unbiased analysis is, specifically, the Cox Proportional Hazards model. Since treatment switching is not permitted in this dataset, randomization is preserved and the hazard-ratio drawn from the Cox Proportional Hazards model has an unbiased, causal interpretation (@breslow). The difference between the treatment effect as determined by the unbiased analysis and the treatment effect as determined by each of the other methods is recorded as the method-associated bias (see Figure 1).
+
+<br>
+<br>
+<br>
+
+# Simulator Implementation
+
+## The Default Settings
+
+The core simswitch engine is the function `simswitch()`. Running `simswitch()` with no arguments runs a simulation with the following default parameters:
+
+```{r sim_default, eval=FALSE}
+
+simswitch(add_tvar=0, b_allowance=0.1, b_mag=0.5, b_scale=stime, b_shape=1, bootrep=1000, 
+          cens_flag="Random", hide_tvar=0, ipcw_robust=TRUE, m_allowance=0.1, 
+          m_inflation=1.75, m_fidelity=0.1, m_hard=FALSE, m_mag=0.9, 
+          m_scale=0.7*stime, m_shape=2.8, n=400, num_bvar=3, num_tvar=3, 
+          prop_cens=0.1, prop_cens_allowance=0.1, 
+          prop_cont_event=min(1, 1.25*prop_trt_event), prop_switch=0.5, prop_trt=0.5, 
+          prop_trt_event=0.25, recens=TRUE, rerun_lim=200, s_allowance=0.1, s_mag=0.5, 
+          s_scale=0.7*stime, s_shape=2, stime=100, t_allowance=0.1, t_mag=0.5, 
+          treat_beta = -1, tse_dist = "loglogistic", verbose=2, violate=FALSE)
+
+
+```
+
+The arguments `n`, `stime`, `prop_trt` specify, respectively, the sample size, follow-up time and proportion of patients randomized to treatment. These three arguments thus define the basic structure of the study being simulated.
+
+The defaults of the arguments `bcov`, `beta.mat`, `covar_coef`, `dep_func`, `haz` and `switch_coef` are ommitted due to their complexity; their proper usage is explained in more detail in the following subsections.
+
+
+
+## Adjusting Event-Rates
+
+Amongst the parameters of primary interest are the four event-rates described in the previous section -- (I) The control-group event-rate, (II) the experimental-group event-rate, (III) The switching event-rate, and (IV) The disease-progression event-rate. Each of these event-rates can be specified by entering a hazard function, a target event-rate, and an allowance window. After each iteration of the data-generation process (see Figure 4), if the current event-rate is not within the allowance window centered around the target event-rate, `simswitch()` adjusts the hazard by a multiplicative factor as appropriate, and the data-generation process is begun again. A user may specify any or all of these event-rate associated paramaters at once, and all unspecified parameters will revert to default values. Each event-ratesis implemented via this same fundamental structure, meaning `simswitch()` may adjust up to all four event hazards in each data-generating iteration. 
+
+To give an example, if we specify the event-rate in the control group with a Weibull baseline hazard (`b_haz = Weibull_hazard(1, 2)`), an event-rate (`prop_cont_event = 0.5`), and an allowance window (`b_allowance = 0.1`), `simswitch()` will return a dataset in which the proportion of events _p_: (0.5-0.1 < _p_ < 0.5+0.1). Table 2 elaborates on which parameters control each event-rate.
+
+<center> <h3> Table 3: Simulated Event-Rates and Associated Parameters </h3> </center>
+```{r event_rate, echo=FALSE,  fig.align='center', out.width="70%"}
+knitr::include_graphics("event_rates_table.png")
+
+
+```
+
+
+
+## Choosing a Treatment Effect
+
+simswitch is compatible with a wide variety of treatment effects, from the simplest -- a constant, common treatment effect -- to the most complex -- a time-dependent, patient-dependent treatment effect. To specify a constant treatment effect of $x$ across time, the user can simply pass the argument `treat_beta = x` to `simswitch()`. For treatment effects that are time- or patient-dependent, the user must pass a vector of treatments in the `treat` column of the `beta.mat`argument, explained in more detail below.
+
+## Choosing Baseline Covariates
+
+For simple specification of baseline covariates, a user may specify the number of baseline and time-dependent covariates included in the simulation through the arguments `num_bvar` and `num_tvar` respectively. When these arguments alone are specified, a call to `simswitch()` assigns random baseline values to patients, drawn from a default multivariate normal distribution with zero covariance.
+
+To specify baseline covariates drawn from a custom distribution, a user must sample the covariates themselves and pass them to simswitch through a matrix or dataframe with width equal to the number of baseline covariates, and length equal to the number of patients times follow-up time. For example, in the code below, we specify a baseline covariate dataframe for three patients in a study with a follow-up time of 3. The baseline covariates represent, in order, Age, Systolic Blood Pressure, and Years of Education. Since these data would be collected at baseline, they are unchanging throughout each patient's follow-up time.
+
+Finally, a user may add spurious time-varying covariates through the argument `add_tvar`. These variables have no causal effect on overall survival or treatment switch, and are optionally independent of other covariates, but are included in the modelling processes of the IPCW and TSE complex methods. Similarly, a user may "hide" relevant covariates through the argument `hide_tvar`, which masks a given number of covariates from the IPCW and TSE processes.
+
+```{r baselines, echo=TRUE,  fig.show='hold',fig.align='center',out.width="49%", eval=TRUE}
+
+n <- 3
+num_bvar <- 3
+stime <- 3
+
+# Baseline values represent age, systolic blood pressure, and education level
+baselines <- as.data.frame(abs(mvrnorm(n, c(40,125,14), matrix(data = c(20,10,0,10,30,0,0,0,3), ncol = num_bvar)))) 
+names(baselines) <- c("Age", "Systolic Blood Pressure", "Years of Education")
+# Round all baseline values
+baselines <- round(baselines)
+# Expand baseline dataframe
+baselines <- baselines[rep(seq_len(nrow(baselines)), each = stime), ] 
+
+```
+
+<center> <h3> Table 4: Simulated Baseline Data Example </h3> </center>
+```{r baselines_plot, echo=FALSE,  fig.show='hold',fig.align='center',out.width="49%", eval=TRUE}
+
+kbl(baselines) %>%
+  kable_paper()
+
+```
+
+
+
+<!-- `num_tvar, num_bvar, add_tvar, hide_tvar, bcov` -->
+
+<!-- ## Choosing a Time-Dependent Covariate Generating Process -->
+
+<!-- <!-- ` covar_coef, dep_func` --> -->
+<!-- We recommend a Markov Process -->
+
+<!-- ## Choosing a Switching Process -->
+
+<!-- <!-- ` switch_coef`, ` s_haz ` --> -->
+
+<!-- again, we recommend a markov process -->
+
+## Choosing Covariate-Dependent Hazards
+
+Finally, a user can specify the effects of baseline covariates, time-dependent covariates and treatment on baseline hazards and on overall survival through the arguments ` b_haz `, ` beta.mat ` and ` haz `. ` b_haz ` is a vector of length _time_, specifying the baseline hazard for all patients over time. ` beta.mat ` is an (_n_ * _time_) x _cov_ matrix, where _cov_ is the vector of baseline covariates, time-dependent covariates and treatment. ` beta.mat ` specifies  the time-dependent hazard ratios through which a patient's personal hazard is related to that patients treatment and covariate information over time. The `haz` argument is a function which takes time `t`, covariate data `x`, coefficients `betas`, and baseline hazard `b_haz` to return a patient specifiy hazard for discrete time point $t$. The default `haz` function produces hazards according to the standard Cox model, but users may define their own function with the only requirement being that the user-defined function take all the same arguments, and produce a single hazard as a return value.
+
+As an example, in the following code we specify a baseline hazard `b_haz` that is roughly bathtub-shaped, as seen in Figure 5. We then produce a custom `beta.mat` argument, where coefficients are drawn from a uniform distribution, $U(0.1, 0.2)$. The complete `beta.mat` dataframe is shown in Table 5.
+
+```{r betamats, echo=TRUE,  fig.show='hold',fig.align='center',out.width="49%", eval=TRUE}
+
+# Specify b_haz
+b_haz <- c(rep(0.1,30), rep(0.05, 40), rep(0.075, 30))
+  
+# Set parameters
+n <- 3
+num_bvar <- 3
+num_tvar <- 3
+stime <- 3
+treat_beta <- -1
+
+# Build beta.mat dataframe
+beta.mat <- as.data.frame(matrix(nrow = stime, ncol = num_bvar + num_tvar + 2))
+names(beta.mat) <- c("time", "treat", "age", "bp", "ed", "t1", "t2", "t3")
+beta.mat$time <- 1:stime
+beta.mat$treat <- treat_beta
+for(j in 1:(num_bvar + num_tvar)){
+  beta.mat[, j + 2] <- signif(runif(1,0.1, 0.2), 2) # Give non-treatment covariates exclusively small, accelerating impacts on time-to-death
+}
+
+# Replicate beta.mat, n times
+beta.mat <- do.call("rbind", replicate(n, beta.mat, simplify = FALSE))
+beta.mat$ids <- rep(1:n, each=stime)
+
+```
+
+<center> <h3> Figure 5: A Custom Baseline Hazard </h3> </center>
+```{r custom_b_haz, echo=FALSE,  fig.show='hold',fig.align='center',out.width="49%"}
+
+plot(1:100, b_haz,
+     type = "l",
+     xlab = "Time",
+     ylab = "Hazard Ratio"
+     )
+
+```
+
+<center> <h3> Table 5: Simulated Coefficients Example for Overall Survival Cox Model </h3> </center>
+```{r betamats_plot, echo=FALSE,  fig.show='hold',fig.align='center',out.width="49%", eval=TRUE}
+
+kbl(beta.mat) %>%
+  kable_paper()
+
+```
+
+
+## Modelling Choices
+
+There are several modelling choices to be made in the analysis step of the simulation process which will impact how each of the five analysis methods functions. First, one must choose whether to 'recensor' the results of the RPSFTM and the TSE. The choice of whether or not to recensor may depend on the number of observations being modelled, the anticipated loss in information associated with recensoring, or the purpose of the analysis (@latimer_recensor). 
+
+Second, one must choose a parametric distribution for the Accelerated Failure Time model in the TSE method. The default distribution used by simswitch is the log-logistic distribution, but users may have reason to use a different parametrization (@latimer_tse).
+
+Finally, users should choose the number of bootstrapping repetitions used by the simulator in deriving the method-associated estimated treatment effects. The default number of repetitions is 1000, in keeping with bootstrapping best practices. However, this number of repetitions may slow the runttime of the simulator significantly, and we therefore recommend a much smaller number for exploratory analysis.
+
+# Simulator Outputs
+
+In a single simulation object, a call to `simswitch()` returns:
+
+- A comprehensive plot showing estimated method-associated bias across all analysis methods (Figure 6)
+- Kaplan-Meier survival curves associated with each method (Figure 7)
+- The bootstrapped bias estimates associated with each analysis method
+- A list of the parameters used to specify the simulation
+- The complete confounded and unconfounded datasets used to generate estimated bias
+
+The figures below show examples of the first of these two outputs, namely, method-associated Kaplan-Meier curves and a plot of method-associated bias for all methods used in the simulation. Notably, the IPCW Kaplan-Meier curve is not returned by simswitch, as we are unaware of a weighted, time-dependent form of the Kaplan-Meier curve.
+
+<center> <h3> Figure 6: Method-Associated Bias </h3> </center>
+```{r hr_bias, echo=FALSE,  fig.show ='hold', fig.align='center', out.width="70%"}
+knitr::include_graphics("hr_bias.png")
+
+
+```
+
+
+<center> <h3> Figure 7: Method-Associated Kaplan-Meier Curves </h3> </center>
+```{r km, echo=FALSE, fig.cap=" ", fig.show='hold',fig.align='center',out.width="49%"}
+knitr::include_graphics("unbiased_km.png")
+knitr::include_graphics("itt_km.png")
+knitr::include_graphics("rpsftm_km.png")
+knitr::include_graphics("tse_km.png")
+# knitr::include_graphics("ipcw_plot.png")
+
+
+
+```
+
+
+# Simulator Case Studies
+
+We will here present five case studies to illustrate the applications of simswitch. We begin with a simple case where all complex methods' assumptions are met. We then proceed to systematically violate assumptions of each complex method in turn, and demonstrate the bias incurred.
+
+## Baseline Simulation
+
+This first example shows a simple implementation of simswitch. The simulation is generated under the following conditions:
+
+- A sample size of 500
+- Three baseline covariates and five time-dependent covariates
+- A treatment-switching proportion of 50%
+- A follow-up time of 100 discrete time-units, after which patients are administratively censored
+- A treatment effect hazard ratio of $exp(-1)$, or $0.37$
+
+Since the treatment effect is specified as a fixed hazard ratio, the event-rate in the treatment group must be left unspecified. We achieve this by including the argument `unfix = c("T")` to the call to `simswitch()`.
+
+In this simulation, all the assumptions of all complex methods are met: the treatment effect is constant over time and across patients, there are no unmeasured confounders for treatment switch and overall survival, and treatment switching only occurs up to a maximum of 20 time-units after disease progression (DP), which is treated as a secondary-baseline in the TSE method. The bias of these complex methods are therefore low. The complete call to `simswitch()` is shown below, and the resulting estimated biases of the simulation are shown in Figure 8. For reproducibility, we have set a seed in the function call. 
+
+```{r m3_call, echo=TRUE, fig.show='hold',fig.align='center',out.width="49%", eval=FALSE}
+
+m3 <- simswitch(seed = 1234, 
+                n = 400,
+                stime = 100, 
+                num_tvar = 5,
+                prop_trt = 0.5,
+                prop_switch = 0.35,
+                s_allowance = 0.05,
+                prop_cens = 0,
+                prop_cont_event = 0.7,
+                b_allowance = 0.05,
+                bootrep = 400,
+                recens = TRUE,
+                m_inflation = 2,
+                m_shape = 4,
+                m_scale = 100,
+                m_fidelity = 0.05,
+                m_hard = TRUE,
+                unfix = c("T"),
+                treat_beta = -0.43)
+
+```
+
+
+
+<center> <h3> Figure 8: Method-Associated Kaplan-Meier Curves </h3> </center>
+```{r m3_plot, echo=FALSE,  fig.show='hold',fig.align='center',out.width="49%"}
+knitr::include_graphics("m3_plot.png")
+
+
+
+```
+
+
+## Simulation II: Violating the RPSFTM Assumption
+
+The second example shows a nearly identical implementation of simswitch in which the assumption of a constant treatment effect, the fundamental assumption of the RPSFTM, is violated. Instead of a constant treatment hazard ratio of $0.37$, the treatment hazard ratio ranges logarithmically over time from $0.22$ to $1.12$. Figure 9 shows the treatment hazard ratio as a function of time.
+
+<center> <h3> Figure 9: Treatment Hazard Ratio Over Time </h3> </center>
+```{r m4_hazard, echo=FALSE,  fig.show='hold',fig.align='center',out.width="49%"}
+
+plot(1:100, exp((0.35*log(1:100)) - 1.5),
+     type = "l",
+     xlab = "Time",
+     ylab = "Hazard Ratio"
+     )
+
+```
+
+The complete call to `simswitch()` is shown below, and the resulting estimated biases are shown in Figure X. Again, the event-rate in the treatment group is left unspecified through the argument `unfix = c("T")`. As expected, the RPSFTM method in the resulting simulation incurs increased bias.     
+
+```{r m4_call, echo=TRUE,  fig.show='hold',fig.align='center',out.width="49%", eval=FALSE}
+
+m4 <- simswitch(seed = ,
+                n = 400,
+                stime = 100,
+                prop_trt = 0.5,
+                num_tvar = 5,
+                prop_switch = 0.5,
+                s_allowance = 0.05,
+                prop_cens = 0,
+                prop_cont_event = 0.7,
+                b_allowance = 0.05,
+                bootrep = 100,
+                recens = TRUE,
+                m_inflation = 1.75,
+                m_fidelity = 0.1,
+                m_shape = 5,
+                m_scale = 110,
+                m_hard = TRUE,
+                unfix = c("T"),
+                treat_beta = -0.43,
+                violate = "RPSFTM") # Violate RPSFTM assumptions
+
+
+
+
+
+```
+
+
+
+## Simulation III: Violating the TSE Assumption
+
+The third example again shows a nearly identical implementation of simswitch, but wherein the assumption of switch occuring soon after a secondary baseline (in this case, disease progression) is violated. We thus violate one of the fundamental assumptions of the TSE. Instead of switching being limited to within 20 time-units after disease progression, switching can now occur at any time relative to disease progression. This violation is achieved by adding the argument `violate = c("RPSFTM", "TSE")` to the call to `simswitch()`. Disesase progression itself is still generated as one of the covariates, and the TSE can thus still be implemented using disease progression as a secondary baseline. However, as expected, the TSE estimates become more biased (Figure X). 
+
+```{r m5_call, echo=FALSE,  fig.show='hold',fig.align='center',out.width="49%", eval=FALSE}
+
+m5 <- simswitch(n = 400,
+                stime = 100,
+                prop_trt = 0.5,
+                num_tvar = 5,
+                prop_switch = 0.5,
+                s_allowance = 0.05,
+                prop_cens = 0,
+                prop_cont_event = 0.7,
+                b_allowance = 0.05,
+                bootrep = 1000,
+                recens = TRUE,
+                m_inflation = 1.75,
+                m_fidelity = 0.2,
+                m_hard = TRUE,
+                unfix = c("T"),
+                treat_beta = -1,
+                violate = c("RPSFTM", "TSE")) # Violate RPSFTM and TSE assumptions
+
+
+
+```
+
+
+## Simulation IV: Violating the IPCW Assumption
+
+The fourth example again shows a nearly identical implementation of simswitch, but wherein the assumption of no unmeasured confounders, a fundamental assumption of the IPCW, is violated. Instead of all time-varying covariates produced in the data-generation step being included in the IPCW modelling, two time-varying covariates are excluded. This violation is achieved by adding the argument `violate = c("RPSFTM", "TSE", "IPCW")`, or equivalently, `violate = "All"`, to the call to `simswitch()`. As expected, the IPCW estimates become more biased (Figure X). 
+
+
+## Simulation V: Estimating Bias Over a Range of Switch Proportions
+
+Finally, in the fifth example, we demonstrate estimates of method-associated bias across a range of switch proportions by a call to `simrange()`, which acts as a wrapper to `simswitch()`. The exact call to `simrange()` is included below. It is identical to the original call to `simswitch()` in Simulation I, except that the `prop_switch` argument has now been passed as a vector of proportions which define the target proportions of switching over the range of simulations.
+
+To obtain sequential simulations with the same treatment hazard ratio and same baseline hazard, we must use the argument `unfix = c("B", "T")` in the call to `simswitch()`. This prevents simswitch from adjusting the baseline hazard and the treatment hazard ratio to obtain the specified or default control-group and experimental-group event-rates. As a result, the sequence of simulations have identical baseline hazards and treatment effects, but different event-rates in the control and experimental arms.
+
+```{r m7_call, echo=TRUE, fig.show='hold',fig.align='center',out.width="49%", eval=FALSE}
+
+m7 <- simrange(seed = 1100, 
+                n = 400,
+                stime = 100, 
+                num_tvar = 5,
+                prop_trt = 0.5,
+                prop_switch = seq(0.1,0.9,0.05),
+                s_allowance = 0.05,
+                prop_cens = 0,
+                prop_cont_event = 0.7,
+                b_allowance = 0.05,
+                bootrep = 1000,
+                recens = TRUE,
+                m_inflation = 1.75,
+                m_fidelity = 0.2,
+                m_hard = TRUE,
+                unfix = c("T"),
+                treat_beta = -1)
+
+```
+
+
+
+```{r case_studies, echo=FALSE,  fig.show='hold',fig.align='center',out.width="49%", eval=FALSE}
+
+n <- 300
+num_bvar <- 3
+num_tvar <- 3
+stime <- 100
+
+# baselines representing age, systolic blood pressure, and education level
+baselines <- as.data.frame(abs(mvrnorm(n, c(40,125,14), matrix(data = c(20,10,0,10,30,0,0,0,3), ncol = num_bvar)))) # generate baseline covariates for each patient
+# round all baselines, to simplify
+baselines <- round(baselines)
+# TODO plot multivariate age x blood pressure, to show correlation
+baselines <- baselines[rep(seq_len(nrow(baselines)), each = stime), ] # repeat each row of baselines stime times
+
+# coefficients defining the Markov process that generates time-varying covariates
+# There are 2 elements in covar_coef -- a "baseline" matrix, and a "varying" matrix. 
+covar_coef <- list(baseline = matrix(sample(1:(num_bvar*num_tvar), num_bvar*num_tvar), ncol = num_tvar), varying = matrix(sample(1:(num_tvar*(num_tvar+1)), num_tvar*(num_tvar+1)), ncol = num_tvar)) 
+    covar_coef$baseline <- LICORS::normalize(covar_coef$baseline, byrow = FALSE)
+    # sweep(covar_coef$baseline, 2, colSums(covar_coef$baseline), `/`)
+    covar_coef$varying <- LICORS::normalize(covar_coef$varying, byrow = FALSE)
+    # sweep(covar_coef$varying, 2, colSums(covar_coef$varying), `/`)
+    covar_coef$varying[1,] <- -covar_coef$varying[1,] # make the treatment effect protective
+    # TODO try to make more orderly...
+    covar_coef$varying <- covar_coef$varying/200
+    for(j in 1:num_tvar){
+      covar_coef$varying[(j+1),j] <- 1
+    }
+    
+# Alternately,
+covar_coef$baseline <- matrix(data = c(0.2, 0.3, 0.1, 0.2, 0.5, 0.4, 0.1, 0.3, 0.5), nrow = num_bvar)
+covar_coef$varying <- matrix(data = c(-0.025, 1, 0.014, 0.002,
+                                      -0.011, 0.018, 1, 0.0068,
+                                      -0.017, 0.003, 0.015, 1), nrow = (num_tvar + 1))
+
+# TODO set beta.mat?
+
+
+
+# TODO implement using a call to the package simswitch, i.e., m1 <- simswitch::simswitch()
+m2 <- simswitch(n = n,
+                num_bvar = num_bvar,
+                stime = stime, 
+                bcov = baselines,
+                covar_coef = covar_coef,
+                prop_trt = 0.5,
+                prop_switch = 0.4,
+                s_allowance = 0.1,
+                prop_cens = 0,
+                prop_cont_event = 0.7,
+                b_allowance = 0.1,
+                bootrep = 1000,
+                recens = TRUE,
+                b_shape = 2,
+                b_scale = 200,
+                m_inflation = 1.75,
+                m_fidelity = 0.2,
+                m_hard = TRUE,
+                unfix = c("T"),
+                treat_beta = -1)
+# TODO why is m-hazard so low?
+# TODO why is proportion of switch so low to begin with?
+
+# Visualize the changes in time-varying covariates by treatment arm
+df <- m1$params$unconfounded_data
+df$arm <- as.factor(df$arm)
+ggplot(data = df, aes(x = time, y = v1, colour = arm)) + geom_path(aes(group = ids), alpha = 0.3) + theme_bw()
+ggplot(data = df, aes(x = time, y = v2, colour = arm)) + geom_path(aes(group = ids), alpha = 0.3) + theme_bw()
+
+
+```
+
+```{r case_studies_2, echo=FALSE,  fig.show='hold',fig.align='center',out.width="49%", eval=FALSE}
+
+# TODO implement using a call to the package simswitch, i.e., m1 <- simswitch::simswitch()
+m3 <- simswitch(n = 500,
+                stime = 100, 
+                num_tvar = 5,
+                prop_trt = 0.5,
+                prop_switch = 0.5,
+                s_allowance = 0.05,
+                prop_cens = 0,
+                prop_cont_event = 0.7,
+                b_allowance = 0.05,
+                bootrep = 1000,
+                recens = TRUE,
+                m_inflation = 1.75,
+                m_fidelity = 0.2,
+                m_hard = TRUE,
+                unfix = c("T"),
+                treat_beta = -1)
+
+# Visualize the changes in time-varying covariates by treatment arm
+# df <- m3$params$unconfounded_data
+# df$arm <- as.factor(df$arm)
+# ggplot(data = df, aes(x = time, y = v1, colour = arm)) + geom_path(aes(group = ids), alpha = 0.1) + theme_bw()
+# ggplot(data = df, aes(x = time, y = v2, colour = arm)) + geom_path(aes(group = ids), alpha = 0.1) + theme_bw()
+
+
+# Violate RPSFTM assumptions
+m4 <- simswitch(n = 500,
+                stime = 100,
+                prop_trt = 0.5,
+                num_tvar = 5,
+                prop_switch = 0.5,
+                s_allowance = 0.05,
+                prop_cens = 0,
+                prop_cont_event = 0.7,
+                b_allowance = 0.05,
+                bootrep = 1000,
+                recens = TRUE,
+                m_inflation = 1.75,
+                m_fidelity = 0.2,
+                m_hard = TRUE,
+                unfix = c("T"),
+                treat_beta = -1,
+                violate = "RPSFTM")
+
+# Violate RPSFTM and TSE assumptions
+m5 <- simswitch(n = 500,
+                prop_trt = 0.5,
+                num_tvar = 5,
+                prop_switch = 0.5,
+                s_allowance = 0.05,
+                prop_cens = 0,
+                prop_cont_event = 0.7,
+                b_allowance = 0.05,
+                bootrep = 1000,
+                recens = TRUE,
+                m_inflation = 1.75,
+                m_fidelity = 0.2,
+                m_hard = TRUE,
+                unfix = c("B", "M", "T"),
+                treat_beta = -1,
+                violate = c("RPSFTM", "TSE"),
+                b_haz = m3$params$b_haz,
+                bcov = m3$params$bcov,
+                beta.mat = m3$params$beta.mat,
+                covar_coef = m3$params$covar_coef,
+                m_haz = m3$params$m_haz,
+                s_haz = m3$params$s_haz,
+                switch_coef = m3$params$switch_coef)
+
+# Violate all assumptions
+m6 <- simswitch(n = 500,
+                prop_trt = 0.5,
+                num_tvar = 5,
+                prop_switch = 0.5,
+                s_allowance = 0.05,
+                prop_cens = 0,
+                prop_cont_event = 0.7,
+                b_allowance = 0.05,
+                bootrep = 100,
+                recens = TRUE,
+                b_shape = 2,
+                b_scale = 200,
+                m_inflation = 1.75,
+                m_fidelity = 0.2,
+                m_hard = TRUE,
+                unfix = c("T"),
+                treat_beta = -1,
+                violate = "All")
+```
+
+# Discussion
+
+In the current paper, we have presented the novel treatment-switching simulation R package, **simswitch**. With this package, users can easily simulate realistic, discrete-time survival data with flexible forms of treatment-switching. Users can then estimate the bias associated with complex methods intended for controlling treatment-switching-associated confounding. Users can also customize the data-generation process, thereby closely approximating target trials and assessing the appropriateness of the two standard and three complex methods for a given target trial.
+
+In future, we aim to (I) increase the simulator's flexibility by including an option for experimental-to-control switching as well as for multiple treatment arms, to (II) increase the speed of data-generation, and (III) simplifying the specification of simswitch's data-generating architecture.
+
+
+# References

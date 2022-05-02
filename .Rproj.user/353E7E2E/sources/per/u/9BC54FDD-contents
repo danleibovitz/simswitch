@@ -1,0 +1,35 @@
+# plot covariate dispersion
+
+x <- m3loop$params$confounded_data
+y <- m3loop$params$unconfounded_data
+
+ggplot(x[x$arm==0 & x$b1==0,], mapping = aes(time, v1, group=ids)) +
+  geom_line(alpha=0.2) +
+  ylim(c(-7, 7))
+
+mean(x$b1[x$time == 1 & x$arm == 0 & x$switch_status==1])
+mean(x$b1[x$time == 1 & x$arm == 0])
+sum(x$secbase_observed[x$time == 1 & x$arm == 0 & x$b1==0])
+sum(x$secbase_observed[x$time == 1 & x$arm == 0 & x$b1 == 1])
+sum(y$secbase_observed[y$time == 1 & y$arm == 0 & y$b1==0])
+sum(y$secbase_observed[y$time == 1 & y$arm == 0 & y$b1 == 1])
+
+as.matrix(x[x$time == 1 & x$treat == 0, names(x) %in% c(bcov_names, tcov_names)])[1:10,] %*% switch_coef
+text <- as.matrix(x[x$time == 1 & x$treat == 0, names(x) %in% c(bcov_names, tcov_names)])[1:10,]
+text %*% switch_coef
+
+h <- m3loop$params$s_haz
+1 - exp(-exp(log(h[1]) + as.matrix(x[x$time == 1 & x$treat == 0, names(x) %in% c(bcov_names, tcov_names)])[1:10,] %*% switch_coef))
+1 - exp(-exp(log(h[1]) + text %*% switch_coef))
+
+
+as.matrix(x[x$time == 1, names(dat) %in% c("treat", tcov_names)])
+1 - exp(-exp(log(m_haz[2]) +
+               as.matrix(x[x$time == 1, names(x) %in% c("treat", tcov_names)]) %*% covar_coef$varying[,1])) )
+
+
+
+(rbinom( n = length(retval[, 1]), size = 1,
+         prob = 1 - exp(-exp(log(m_haz[window]) +
+                as.matrix(dat[dat$time == window-1, names(dat) %in% 
+                c("treat", tcov_names)]) %*% covar_coef$varying[,1])) ))[retval[,1] == 0]

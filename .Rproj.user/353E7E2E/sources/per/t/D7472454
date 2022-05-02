@@ -1,0 +1,26 @@
+{
+    "id": "D7472454",
+    "path": "~/packages/simswitch/R/hello.R",
+    "project_path": "R/hello.R",
+    "type": "r_source",
+    "hash": "1766531949",
+    "contents": "",
+    "dirty": false,
+    "created": 1634142243521.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "644,35",
+        "scrollLine": "639"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1638199103,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1638199103031,
+    "read_only": false,
+    "read_only_alternatives": []
+}
