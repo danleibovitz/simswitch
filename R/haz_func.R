@@ -1,5 +1,18 @@
-# define haz() function
+# define haz_func() function
 
+#' Title
+#'
+#' @param t
+#' @param x
+#' @param betas
+#' @param b_haz
+#' @param ncov
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 haz_func <- function(t, x, betas, b_haz, ncov = 0, ...) {
 
   # TODO change c(5:(5+ncov)) and all similar structures to calling the actual names in names_bcov, etc.

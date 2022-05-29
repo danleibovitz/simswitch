@@ -10,3 +10,12 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.2
+Imports: 
+    MASS,
+    survival,
+    ggplot2,
+    survminer,
+    rpsftm,
+    LICORS,
+    parallel,
+    magrittr

@@ -1,6 +1,18 @@
 # generate bcov (baseline covariates)
 
-gen_bcov <- function(num_bvar, diags, middle, stime){
+#' Generate a matrix of baseline covariates
+#'
+#' @param num_bvar
+#' @param diags
+#' @param middle
+#' @param stime
+#' @param n
+#'
+#' @return
+#' @export
+#'
+#' @examples
+gen_bcov <- function(num_bvar, diags, middle, stime, n){
   covariance <- matrix(data = runif(num_bvar^2, 0.1, 0.5), nrow = num_bvar)
   diag(covariance) <- 0.4
   covariance <- t(covariance) %*% covariance # force positive definite

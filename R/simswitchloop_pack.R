@@ -1,38 +1,64 @@
 # main function
 
-######
+###
 # TODO
 # re-format styling
 # move features out that could be written as own functions. these can be internal, not exported.
 # make K-M curve for each dataset, and make K-M curves averages
 # occasional error: Error in rpsft_dat$counterfact[rpsft_dat$arm == 0] <- mr$Sstar[rpsft_dat$arm ==  :
 # replacement has length zero
-######
+# m_allowance a necessary param?
+# find out why %++% no longer works to add a geom_hline() to a ggsurvplot object, and find replacement
+###
+
 #
-# # load libraries
-# library(MASS)
+# # load libraries: tabbed libraries added
+#     library(MASS)
 # # library(coxed)
 # library(data.table)
-# library(survival)
+#     library(survival)
 # library(ggplot2)
-# library(survminer)
-# library(rpsftm)
-# # library(LICORS)
+#     library(survminer)
+#     library(rpsftm)
+#     library(LICORS)
 # library(ipcwswitch)
 # library(boot)
 # library(tidyr)
 # library(purrr)
+#     library(parallel)
+#     library(magrittr)
 
-# recommended:
-# library(parallel)
 
-# set relevant classes
+# Set relevant classes ####
+
+# Set old classes and class unions
 
 setOldClass("ggsurvplot")
 setOldClass("gg")
-
 setClassUnion("ggsurvplotOrNULL", c("ggsurvplot", "NULL"))
 
+#' The simswitch result class
+#'
+#' @slot unbiased numeric.
+#' @slot unbiased_plot ggsurvplot.
+#' @slot itt numeric.
+#' @slot itt_plot ggsurvplot.
+#' @slot pp numeric.
+#' @slot pp_plot ggsurvplot.
+#' @slot ipcw numeric.
+#' @slot ipcw_plot ggsurvplotOrNULL.
+#' @slot rpsft numeric.
+#' @slot rpsft_plot ggsurvplot.
+#' @slot tse numeric.
+#' @slot tse_plot ggsurvplot.
+#' @slot compar_plot gg.
+#' @slot bias_plot gg.
+#' @slot params list.
+#'
+#' @return
+#' @export
+#'
+#' @examples
 setClass("SwitchSimulation", representation(
   unbiased = "numeric",
   unbiased_plot = "ggsurvplot",
@@ -51,12 +77,73 @@ setClass("SwitchSimulation", representation(
   params = "list"
   ))
 
+
+# Set generic methods ####
+
+#' Title
+#'
+#' @return
+#' @export
+#'
+#' @examples
+setMethod(
+  f = "plot",
+  signature = "SwitchSimulation",
+  definition = function(x,...){
+
+  }
+  )
+
+#' Title
+#'
+#' @return
+#' @export
+#'
+#' @examples
+setMethod(
+  f = "print",
+  signature = "SwitchSimulation",
+  definition =  function(x,...){
+
+  }
+  )
+
+#' Title
+#'
+#' @return
+#' @export
+#'
+#' @examples
+setMethod(
+  f = "summary",
+  signature = "SwitchSimulation",
+  definition =  function(object){
+    print(paste("Violate: ", object@params$violate))
+    print(paste("Proportion censored: " , object@params$prop_cens))
+    print(paste("Recensored: " , object@params$recens))
+    print(paste("Follow-up time: " , object@params$stime))
+    print(paste("Number of baseline covariates: ", object@params$num_bvar))
+    print(paste("Number of time-varying covariates: ", object@params$num_tvar))
+    print(paste("Sample size: ", object@params$n))
+    print(paste("Proportion assigned to treatment arm: " , object@params$prop_trt))
+    print(paste( "Number of secondary baselines observed: ", object@params$secondary_baseline_observed))
+    print(paste( "Proportion of switchers in treatment arm: ", object@params$switch_observed))
+    print(paste( "Event-rate in control arm: ", object@params$proportion_events_control))
+    print(paste( "Event-rate in treatment arm: ", object@params$proportion_events_experimental))
+    print(paste( "Proportion switched: ", object@params$proportion_switchers))
+  }
+  )
+
+
+# main driver function documentaiton ####
+
 #' Simulate TS data and apply treatment-effect-estimating methods
 #'
-#' @param add_tvar Select number of covariates to add which have no effect on overall survival, but which are included in IPCW, TSE and RPSFTM models.
+#' @param add_tvar Number of covariates to add which have no effect on overall survival, but which are nonetheless included in IPCW, TSE and RPSFTM models (non-negative integer).
 #' @param b_allowance
-#' @param b_haz Complete hazard vector
-#' @param b_mag
+#' @param b_haz Basic hazard function determining survival. In a simulation with no covariates and 0 treatment effect, this is the universal hazard function.
+#' Default is the hazard associated with a weibull distribution with \emph{shape} = 1 and \emph{scale} = stime. A user-defined entry must be vector or array of length \emph{stime} representing the hazard up to and inculding each time point. For specifying a parametric basic hazard function, see arguments \emph{b_scale} and \emph{b_shape}.
+#' @param b_mag The intial magnitude by which the hazard function \emph{b_haz} is adjusted if the desired number of events is not observed. Default is 0.5 (and the default value is usually sufficient). Must be postive and numeric.
 #' @param b_scale
 #' @param b_shape
 #' @param bcov
@@ -65,7 +152,7 @@ setClass("SwitchSimulation", representation(
 #' @param covar_coef This is a new comment
 #' @param dep_func
 #' @param haz
-#' @param hide_tvar
+#' @param hide_tvar add option for hiding relevent covariates from switching modeling
 #' @param ipcw_exclude
 #' @param m_allowance
 #' @param m_inflation
@@ -75,28 +162,30 @@ setClass("SwitchSimulation", representation(
 #' @param m_mag
 #' @param m_scale
 #' @param m_shape
-#' @param n
-#' @param num_bvar
-#' @param num_tvar
-#' @param prop_cens
+#' @param n   Number of participants in simulated trials.
+#' @param num_bvar Number of basline covariates to include.
+#' @param num_tvar Number of time-varying covariates to include.
+#' @param prop_cens Proportion of patients
 #' @param prop_cens_allowance
 #' @param prop_cont_event
-#' @param prop_switch
+#' @param prop_switch set proportion of control participants to switch
 #' @param prop_trt
-#' @param prop_trt_event
+#' @param prop_trt_event   set proportion of participants on experimental treatment
 #' @param recens
-#' @param rerun_lim
+#' @param rerun_lim   set while loop limit
 #' @param s_allowance
 #' @param s_haz
 #' @param s_mag
 #' @param s_scale
 #' @param s_shape
+#' @param seed
 #' @param stime
 #' @param switch_coef
 #' @param t_allowance
 #' @param t_mag
 #' @param treat_beta
 #' @param tse_dist
+#' @param unfix
 #' @param verbose
 #' @param violate
 #'
@@ -104,53 +193,80 @@ setClass("SwitchSimulation", representation(
 #' @export
 #'
 #' @examples
-simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape, bcov, beta.mat,
-                      cens_flag, covar_coef, dep = dep_func, haz = haz_func, hide_tvar, ipcw_exclude,
-                      m_allowance, m_inflation, m_fidelity, m_hard, m_haz, m_mag, m_scale, m_shape,
-                      n, num_bvar, num_cores, num_tvar, prop_cens, prop_cens_allowance, prop_cont_event, prop_switch,
-                      prop_trt, prop_trt_event, recens, reps, rerun_lim, s_allowance, s_haz, s_mag, s_scale,
-                      s_shape, seed, stime, switch_coef, t_allowance, t_mag, treat_beta, tse_dist, unfix, verbose, violate){
+simswitch <- function(add_tvar = 0,
+                          b_allowance = 0.1,
+                          b_haz,
+                          b_mag = 0.5,
+                          b_scale,
+                          b_shape,
+                          bcov,
+                          beta.mat,
+                          cens_flag = "Random",
+                          covar_coef,
+                          dep = dep_func,
+                          haz = haz_func,
+                          hide_tvar = 0,
+                          ipcw_exclude = TRUE,   # set ipcw_exclude. If TRUE, we skip bootstrapping for IPCW. Bootstrapped IPCW may not be symmetrical, and may be more accurate, but takes hella long
+                          m_allowance = 0.1,
+                          m_inflation = 2,
+                          m_fidelity = 0.2, # the proportion of stime away from first M that switch can occur
+                          m_hard = TRUE, # represents weather switch can happen only after M, or if we don't care
+                          m_haz,
+                          m_mag = 2,
+                          m_scale,
+                          m_shape,
+                          n = 400,
+                          num_bvar = 3,
+                          num_cores = 0,
+                          num_tvar = 3,
+                          para = FALSE,
+                          prop_cens,
+                          prop_cens_allowance = 0.1,
+                          prop_cont_event,
+                          prop_switch = 0.5,
+                          prop_trt = 0.5,
+                          prop_trt_event,
+                          recens = TRUE, # set flag for recensoring of RPSFTM and Two-Stage Model
+                          reps = 1000,
+                          rerun_lim = 200,
+                          s_allowance = 0.1, # how far from the proportion of switching requested is acceptable?
+                          s_haz = weihaz(1:stime, s_shape, s_scale),  # set baseline switch hazard function. lam is set as lambda of exp distribution with expected value of prop_switch by stime
+                          s_mag = 0.5,
+                          s_scale = 0.7*stime,
+                          s_shape = 2,
+                          seed,
+                          stime = 100,
+                          switch_coef = c(runif(1, 1.5, 2), runif(num_bvar-1, 0.1, 0.3), runif(num_tvar, 0.2, 0.5)), # baseline covariate attached to "predisposition" baseline is first, and slightly higher than other baselines. default of switch_coef log hazard ratios. baseline switch coefs are smaller.
+                          t_allowance = 0.1,
+                          t_mag = 0.5,
+                          treat_beta = -1,
+                          tse_dist = "loglogistic", # alternatives are weibull, lognormal, etc.
+                          unfix = as.character(c()),
+                          verbose = 2,
+                          violate = "None"){
 
 
 
-  if(missing(num_cores)){ # set parmeters for parallelization
-    para <- FALSE
-  } else{
+  # Set and check default parameters ####
+
+  if(num_cores != 0){ # set parmeters for parallelization
     # TODO How can we check here that the package 'parallel' is available? This is a requirement.
-    para <- TRUE
     if(!(num_cores %% 1 == 0) | num_cores < 1){ # check that num_cores is a positive integer
       stop("The num_cores argument must be a positive integer.")
     }
-    if(num_cores > detectCores()){ # make sure number of cores requested are available.
-      num_cores <- detectCores()
+    if(num_cores > parallel::detectCores()){ # make sure number of cores requested are available.
+      num_cores <- parallel::detectCores()
       warning("Requested number of cores for parallelization exceeds available number Resetting to available number.")
     }
   }
 
-  if(missing(verbose)){
-    verbose <- 2
-  }
   if(verbose > 1){
     print("Setting parameters...")
   }
-  # set ipcw_exclude. If TRUE, we skip bootstrapping for IPCW. Bootstrapped IPCW may not be symmetrical, and may be more accurate, but takes hella long
-  if(missing(ipcw_exclude)){
-    ipcw_exclude <- TRUE
-  }
 
-  if(missing(tse_dist)){ # alternatives are weibull, lognormal, etc.
-    tse_dist <- "loglogistic"
-  }
-
-  # set number of datasets to be repeated
-  if(missing(reps)){
-    reps <- 1000
-  }
   # set assumption violation flag
   #  implement automatic assumption violation. For RPSFTM, non-constant treatment effect. For TSE, switching after secondary baseline. For IPCW, unmeasured confounding
-  if(missing(violate)){
-    violate <- "None"
-  } else{
+  if(violate != "None"){
     if(!( "All" %in% violate | "None" %in% violate | all(violate %in% c("RPSFTM", "TSE", "IPCW")) )){
       stop("Violate must be set to All, None, or a subset of RPSFTM, TSE and IPCW")
     }
@@ -159,82 +275,41 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
   # set seed for seed option
   if(!missing(seed)){set.seed(seed)}
 
-  # set random censoring flag. One of no censoring, random censoring, non-random censoring
-  if(missing(cens_flag)){
-    cens_flag <- "Random"
-  }else{
+  # check censoring flag. One of no censoring, random censoring, non-random censoring
+  if(cens_flag != "Random"){
     if(!(cens_flag %in% c("None", "Random", "Nonrandom"))) stop("cens_flag must be one of None, Random, or Nonrandom")
   }
   if(missing(prop_cens) & cens_flag != "None"){
     prop_cens <- 0.1 # default censoring proportion is 0.3 across both groups. This is pre-administrative censoring.
   }
-  if(missing(prop_cens_allowance)){
-    prop_cens_allowance <- 0.1
-  }
+
   if(prop_cens < 0 | prop_cens >= 1) stop("prop_cens must be in range [0,1)")
 
-  if(missing(recens)){
-    recens <- TRUE # set flag for recensoring of RPSFTM and Two-Stage Model
-  }
-  # set dependent covariates flag
-  # if(missing(dep_cov)){
-  #   dep_cov <- TRUE # keep default FALSE while testing dependency generation
-  #   }
-  if(missing(unfix)){
-    unfix <- as.character(c())
-  }
+
   if(!is.character(unfix) | any(! unfix %in% c("B", "M", "S", "T"))){
     stop("unfix must be of type character, and only contain \"B\", \"M\", \"S\", or \"T\" for
          Baseline, Metastatic disease, Switch, or Treatment")
   }
-  # set survival time, i.e., administrative censoring time
-  if(missing(stime)){
-    stime <- 100
-  }
-  if(missing(num_bvar)){
-    num_bvar <- 3
-  }
+
+
   num_bvar <- as.integer(num_bvar)
-  if(missing(num_tvar)){
-    num_tvar <- 3
-  }
   num_tvar <- as.integer(num_tvar)
   if(num_tvar < 1) stop("Must have at least 1 time-varying covariate")
-  # add option for hiding relevent covariates from switching modeling
-  if(missing(hide_tvar)){
-    hide_tvar <- 0
-  }
+
+
   if("All" %in% violate | "IPCW" %in% violate){
     hide_tvar <- num_tvar - 1 # exclude all tvar except M
   }
   if(hide_tvar > (num_tvar-1) ) stop("can't hide more time-varying covariates than there are time-varying covariates, and time-varying cov M must always be kept.")
-  # add option for adding irrelevant covariates
-  if(missing(add_tvar)){
-    add_tvar <- 0
-  }
 
-  # set number of participants
-  if(missing(n)){
-    n <- 400
-  }
+
   # set giant while loop flag
   rerun <- TRUE
-  # set while loop limit
-  if(missing(rerun_lim)){
-    rerun_lim <- 200
-  }
-  # set proportion of participants on experimental treatment
-  if(missing(prop_trt)){
-    prop_trt <- 0.5
-  }
-  if(missing(prop_switch)){
-    prop_switch <- 0.5
-  }# set proportion of control participants to switch
-  if(missing(switch_coef)){ # baseline covariate attached to "predisposition" baseline is first, and slightly higher than other baselines.
-    switch_coef <- c(runif(1, 1.5, 2), runif(num_bvar-1, 0.1, 0.3), runif(num_tvar, 0.2, 0.5)) # default of switch_coef log hazard ratios. baseline switch coefs are smaller.
-  }
+
   if(length(switch_coef) != sum(num_bvar, num_tvar)) stop("the switching hazard coefficients must be of the same length as all covariates")
 
+
+  # Build dataframe ####
 
   # Create patient id, randomization, and discrete time structure
   ids <- rep(1:n, each=stime) # specify participant ids
@@ -253,8 +328,8 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
 
   # set random covariates, number equal to num_bvar
   if(missing(bcov)){ # if a baseline covariate matrix is not specified, generate a random one
-    bcov <- gen_bcov(num_bvar = num_bvar, diags = 0.4, middle = 1, stime = stime)
-  } else{
+    bcov <- gen_bcov(num_bvar = num_bvar, diags = 0.4, middle = 1, stime = stime, n = n)
+    } else{
     if(dim(bcov)[1] != (n*stime) | dim(bcov)[2] != num_bvar) stop("a pre-specified baseline covariate matrix must have length equal to (number of patients)*(stime) and width equal to num_bvar")
   }
   bcov_names <- paste0(rep("b", num_bvar), seq.int(1:num_bvar)) # rename bcov columns as b1, b2, etc
@@ -291,47 +366,20 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
     }
   }
 
-  # set dep_func (dependent function for generating covariates). must always return matrix of length n, width num_tvar + 1. at least first index of num_tvar is binary
-  # if(missing(dep_func)){
-  #   dep_func <- dep_func # if user does not provide a dependency function, use the default
-  # }
 
-  # set baseline switch hazard function. lam is set as lambda of exp distribution with expected value of prop_switch by stime
-  if(missing(s_haz)){
-    s_haz <- weihaz(1:stime, 2, 0.7*stime)
-  }
-  if(!missing(s_shape) & !missing(s_scale)){
-    s_haz <- weihaz(1:stime, s_shape, s_scale)
-  }
+  # Set all cox-like functions and associated parameters ####
 
   ## this section is a bit tedious. We have to set up parameters to iteratively search for the correct switching proportion
-  if(missing(s_allowance)){
-    s_allowance <- 0.1
-  }# how far from the proportion of switching requested is acceptable?
+
   s_direc <- 0 # was the last attempt too low or too high?
   prev_s_direc <- 0 # set holder variable for the previous s_direc
-  if(missing(s_mag)){
-    s_mag <- 0.5
-  }# by what factor should we adjust the baseline hazard? must be:
+  # by what factor should we adjust the baseline hazard? must be:
   if(s_mag >= 1 | s_mag <= 0) stop("s_mag must be between 0 and 1, exclusive")
 
-  if(missing(m_allowance)){
-    m_allowance <- 0.1
-  }
+  # TODO m_direc and prev_m_direc not used
   m_direc <- 0
   prev_m_direc <- 0
-  if(missing(m_mag)){
-    m_mag <- 2
-  }
-  if(missing(m_inflation)){
-    m_inflation <- 2
-  }
-  if(missing(m_fidelity)){
-    m_fidelity <- 0.2
-  }# represents the proportion of stime away from first M that switch can occur
-  if(missing(m_hard)){
-    m_hard <- TRUE
-  }# represents weather switch can happen only after M, or if we don't care
+
   if("All" %in% violate | "TSE" %in% violate){
     m_hard <- FALSE
   }
@@ -349,18 +397,11 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
   if(missing(b_haz)){
     b_haz <- weihaz(1:stime, 1, stime) # default is an exponential dist with lambda = stime
   }
-  # if(missing(lambdas)){
-  #   lambdas <- 1/stime # default scale parameter of exponential distribution is 1/stime
-  # }
+
   if(!missing(b_shape) & !missing(b_scale)){
     b_haz <- weihaz(1:stime, b_shape, b_scale)
   }
-  if(missing(b_allowance)){
-    b_allowance <- 0.1
-  }
-  if(missing(b_mag)){
-    b_mag <- 0.5
-  }
+  if(b_mag <= 0) stop("b_mag must be a positive number")
   b_direc <- 0
   prev_b_direc <- 0
 
@@ -371,21 +412,14 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
   if(missing(prop_cont_event)){ # if proportion of control pts is out of window defined by t_allowance, we adjust treatment coefficients by t_mag
     prop_cont_event <- min(1, 1.75*prop_trt_event)
   }
-  if(missing(t_allowance)){
-    t_allowance <- 0.1
-  }
-  if(missing(t_mag)){
-    t_mag <- 0.5
-  }
+
   t_direc <- 0
   prev_t_direc <- 0
 
   if(verbose > 1){
     print("Setting survival coefficients...")
   }
-  if(missing(treat_beta)){
-    treat_beta <- -1 # default treatment coef is -1
-  }
+
   if(missing(beta.mat)){
     beta.mat <- as.data.frame(matrix(nrow = stime, ncol = num_bvar + num_tvar + 2))
     names(beta.mat) <- c("time", "treat", bcov_names, tcov_names)
@@ -429,6 +463,8 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
   Minb1 <- c()
 
 
+  # Tune hazard functions to obtain desired rates ####
+
   # giant while loop should begin here. At this point, we have all parameters set, and a fulldat dataframe with no time
   # varying covariates, no switching and no secondary baseline
   # TODO if para == TRUE, parallelize here. Can these be done all in parallel (including the 1st rep, where conditions are particular) or is it sequential?
@@ -441,7 +477,7 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
       for(i in 1:stime){
         # set covars
         fulldat[fulldat$time == i, names(fulldat) %in% c(tcov_names, "Mtime")] <-
-          dep(dat = fulldat, window = i, base_var=bcov_names, time_var=tcov_names, covar_coef = covar_coef, m_haz = m_haz)
+          dep(dat = fulldat, window = i, base_var=bcov_names, time_var=tcov_names, covar_coef = covar_coef, m_haz = m_haz, num_t = num_tvar, tcov_n = tcov_names)
         # set treatment indicator
         if(i != 1){ # if its not the first time window
           fulldat$treat[fulldat$time == i] <- ifelse(fulldat$treat[fulldat$time == i-1] == 1, 1, 0) # if the previous window treat is 1, continue treatment
@@ -465,7 +501,7 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
       for(i in 1:stime){
         # set covars
         fulldat_cont[fulldat_cont$time == i, names(fulldat_cont) %in% c(tcov_names, "Mtime")] <-
-          dep(dat = fulldat_cont, window = i, base_var=bcov_names, time_var=tcov_names, covar_coef = covar_coef, m_haz = m_haz)
+          dep(dat = fulldat_cont, window = i, base_var=bcov_names, time_var=tcov_names, covar_coef = covar_coef, m_haz = m_haz, num_t = num_tvar, tcov_n = tcov_names)
       }
 
 
@@ -630,8 +666,8 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
       fit = survminer::surv_fit(survival::Surv(eventtime, status) ~ arm, data = fulldat_cont[fulldat_cont$time == 1,]),
       xlab = "Time",
       ylab = "OS",
-      title = "KM Plots for Unconfounded Analysis", conf.int = TRUE) %++%
-      geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
+      title = "KM Plots for Unconfounded Analysis", conf.int = TRUE) # %++%
+      # geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
 
 
     # Run Naive models:
@@ -645,8 +681,8 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
       fit = survminer::surv_fit(survival::Surv(eventtime, status) ~ arm, data = fulldat[fulldat$time == 1,]),
       xlab = "Time",
       ylab = "OS",
-      title = "KM Plots for ITT", conf.int = TRUE) %++%
-      geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
+      title = "KM Plots for ITT", conf.int = TRUE) # %++%
+      # geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
 
 
     ## Per Protocol ##
@@ -665,8 +701,8 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
       fit = survminer::surv_fit(survival::Surv(PPtime, PPdeath) ~ arm, data = fulldat[fulldat$time == 1, ]),
       xlab = "Time",
       ylab = "OS",
-      title = "KM Plots for PP", conf.int = TRUE) %++%
-      geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
+      title = "KM Plots for PP", conf.int = TRUE) # %++%
+      # geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
 
     # Run adjustment models:
     if(verbose > 1){
@@ -713,8 +749,8 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
       fit = survminer::surv_fit(survival::Surv(starttime, time, eventstatus) ~ arm, data = ipdat, weights = ipdat$weights.trunc),
       xlab = "Time",
       ylab = "OS",
-      title = "KM Plots for IPCW", conf.int = TRUE) %++%
-      geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
+      title = "KM Plots for IPCW", conf.int = TRUE) # %++%
+      # geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
     } else{
         ipcw_plot <- NULL
       }
@@ -734,9 +770,9 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
     # single rep mod: Build either recensored or unrecensored model
     if(recens == TRUE){
       # build rpsftm model
-      mr <- suppressWarnings(rpsftm(survival::Surv(eventtime, status) ~ rand(arm, rx), data = rpsft_dat, low_psi = -2, hi_psi = 2, censor_time = cens))
+      mr <- suppressWarnings(rpsftm::rpsftm(survival::Surv(eventtime, status) ~ rand(arm, rx), data = rpsft_dat, low_psi = -2, hi_psi = 2, censor_time = cens))
     } else{
-      mr <- suppressWarnings(rpsftm(survival::Surv(eventtime, status) ~ rand(arm, rx), data = rpsft_dat, low_psi = -2, hi_psi = 2))
+      mr <- suppressWarnings(rpsftm::rpsftm(survival::Surv(eventtime, status) ~ rand(arm, rx), data = rpsft_dat, low_psi = -2, hi_psi = 2))
     }
 
     # set counterfactuals with rpsftm model object:
@@ -752,8 +788,8 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
       fit = survminer::surv_fit(survival::Surv(counterfact, cf_status) ~ arm, data = rpsft_dat),
       xlab = "Time",
       ylab = "OS",
-      title = "KM Plots for RPSFTM", conf.int = TRUE) %++%
-      geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
+      title = "KM Plots for RPSFTM", conf.int = TRUE) # %++%
+      # geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
 
     if(verbose > 1){
       print("Performing complex method estimates: TSE...")
@@ -768,7 +804,6 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
 
     TSEform <- formula(paste("survival::Surv(TSsurv, status) ~ switch_status +", paste(c(bcov_names, tcov_names), collapse = "+"), collapse = " "))
 
-    # this or that ####
     # tse_est <- function(data, indices, tsdat){ # function to pass to boot::boot()
     #   d <- data[indices,] # allows boot to select sample
     #
@@ -794,10 +829,9 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
     # }
     # tse_wrapper <- possibly(tse_est, otherwise = NA)
     # tse <- boot::boot(data = tscontrol, statistic = tse_wrapper, R = bootrep, tsdat = tsdat)
-    #########
-    #########
+
     # fit AF model
-    mod <- survreg(formula = TSEform, dist = tse_dist, data = tscontrol)
+    mod <- survival::survreg(formula = TSEform, dist = tse_dist, data = tscontrol)
 
     AF <- exp(coef(mod))[names(exp(coef(mod))) == "switch_status"] # get acceleration factor
     tscontrol$counterfact <- ifelse(tscontrol$switch_status == 0,
@@ -812,15 +846,13 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
 
     tse[r] <- exp(coef(survival::coxph(survival::Surv(counterfact, status) ~ arm, data = tsdat)))
 
-    #########
-
     # make KM estimates, censored
     tse_plot <- survminer::ggsurvplot(
       fit = survminer::surv_fit(survival::Surv(counterfact, status) ~ arm, data = tsdat),
       xlab = "Time",
       ylab = "OS",
-      title = "KM Plots for TSE", conf.int = TRUE) %++%
-      geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
+      title = "KM Plots for TSE", conf.int = TRUE) # %++%
+      # geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
 
 
     # TODO Recensor!
@@ -849,11 +881,12 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
 
 
 
+  # Bootstrap results (in parallel, if possible) with obtained hazard functions ####
 
   # giant while loop should begin here. At this point, we have all parameters set, and a fulldat dataframe with no time
   # varying covariates, no switching and no secondary baseline
   # TODO if para == TRUE, parallelize here. Can these be done all in parallel (including the 1st rep, where conditions are particular) or is it sequential?
-  mclapply(X = 2:reps, mc.cores = 4, FUN = function(r){
+  parallel::mclapply(X = 2:reps, mc.cores = 4, FUN = function(r){
 
     if(r != 1) unfix <- c("B", "M", "S", "T") # if we have generated the first dataset, unfix all hazards
 
@@ -862,7 +895,7 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
       for(i in 1:stime){
         # set covars
         fulldat[fulldat$time == i, names(fulldat) %in% c(tcov_names, "Mtime")] <-
-          dep(dat = fulldat, window = i, base_var=bcov_names, time_var=tcov_names, covar_coef = covar_coef, m_haz = m_haz)
+          dep(dat = fulldat, window = i, base_var=bcov_names, time_var=tcov_names, covar_coef = covar_coef, m_haz = m_haz, num_t = num_tvar, tcov_n = tcov_names)
         # set treatment indicator
         if(i != 1){ # if its not the first time window
           fulldat$treat[fulldat$time == i] <- ifelse(fulldat$treat[fulldat$time == i-1] == 1, 1, 0) # if the previous window treat is 1, continue treatment
@@ -886,7 +919,7 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
       for(i in 1:stime){
         # set covars
         fulldat_cont[fulldat_cont$time == i, names(fulldat_cont) %in% c(tcov_names, "Mtime")] <-
-          dep(dat = fulldat_cont, window = i, base_var=bcov_names, time_var=tcov_names, covar_coef = covar_coef, m_haz = m_haz)
+          dep(dat = fulldat_cont, window = i, base_var=bcov_names, time_var=tcov_names, covar_coef = covar_coef, m_haz = m_haz, num_t = num_tvar, tcov_n = tcov_names)
       }
 
 
@@ -1051,8 +1084,8 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
       fit = survminer::surv_fit(survival::Surv(eventtime, status) ~ arm, data = fulldat_cont[fulldat_cont$time == 1,]),
       xlab = "Time",
       ylab = "OS",
-      title = "KM Plots for Unconfounded Analysis", conf.int = TRUE) %++%
-      geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
+      title = "KM Plots for Unconfounded Analysis", conf.int = TRUE) # %++%
+      # geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
 
 
     # Run Naive models:
@@ -1066,8 +1099,8 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
       fit = survminer::surv_fit(survival::Surv(eventtime, status) ~ arm, data = fulldat[fulldat$time == 1,]),
       xlab = "Time",
       ylab = "OS",
-      title = "KM Plots for ITT", conf.int = TRUE) %++%
-      geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
+      title = "KM Plots for ITT", conf.int = TRUE) # %++%
+      # geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
 
 
     ## Per Protocol ##
@@ -1086,8 +1119,8 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
       fit = survminer::surv_fit(survival::Surv(PPtime, PPdeath) ~ arm, data = fulldat[fulldat$time == 1, ]),
       xlab = "Time",
       ylab = "OS",
-      title = "KM Plots for PP", conf.int = TRUE) %++%
-      geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
+      title = "KM Plots for PP", conf.int = TRUE) # %++%
+      # geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
 
     # Run adjustment models:
     if(verbose > 1){
@@ -1134,8 +1167,8 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
         fit = survminer::surv_fit(survival::Surv(starttime, time, eventstatus) ~ arm, data = ipdat, weights = ipdat$weights.trunc),
         xlab = "Time",
         ylab = "OS",
-        title = "KM Plots for IPCW", conf.int = TRUE) %++%
-        geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
+        title = "KM Plots for IPCW", conf.int = TRUE) # %++%
+        # geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
     } else{
       ipcw_plot <- NULL
     }
@@ -1155,9 +1188,9 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
     # single rep mod: Build either recensored or unrecensored model
     if(recens == TRUE){
       # build rpsftm model
-      mr <- suppressWarnings(rpsftm(survival::Surv(eventtime, status) ~ rand(arm, rx), data = rpsft_dat, low_psi = -2, hi_psi = 2, censor_time = cens))
+      mr <- suppressWarnings(rpsftm::rpsftm(survival::Surv(eventtime, status) ~ rand(arm, rx), data = rpsft_dat, low_psi = -2, hi_psi = 2, censor_time = cens))
     } else{
-      mr <- suppressWarnings(rpsftm(survival::Surv(eventtime, status) ~ rand(arm, rx), data = rpsft_dat, low_psi = -2, hi_psi = 2))
+      mr <- suppressWarnings(rpsftm::rpsftm(survival::Surv(eventtime, status) ~ rand(arm, rx), data = rpsft_dat, low_psi = -2, hi_psi = 2))
     }
 
     # set counterfactuals with rpsftm model object:
@@ -1173,8 +1206,8 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
       fit = survminer::surv_fit(survival::Surv(counterfact, cf_status) ~ arm, data = rpsft_dat),
       xlab = "Time",
       ylab = "OS",
-      title = "KM Plots for RPSFTM", conf.int = TRUE) %++%
-      geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
+      title = "KM Plots for RPSFTM", conf.int = TRUE) # %++%
+      # geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
 
     if(verbose > 1){
       print("Performing complex method estimates: TSE...")
@@ -1189,7 +1222,7 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
 
     TSEform <- formula(paste("survival::Surv(TSsurv, status) ~ switch_status +", paste(c(bcov_names, tcov_names), collapse = "+"), collapse = " "))
 
-    #########
+    ###
     # tse_est <- function(data, indices, tsdat){ # function to pass to boot::boot()
     #   d <- data[indices,] # allows boot to select sample
     #
@@ -1215,10 +1248,10 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
     # }
     # tse_wrapper <- possibly(tse_est, otherwise = NA)
     # tse <- boot::boot(data = tscontrol, statistic = tse_wrapper, R = bootrep, tsdat = tsdat)
-    #########
-    #########
+    ###
+    ###
     # fit AF model
-    mod <- survreg(formula = TSEform, dist = tse_dist, data = tscontrol)
+    mod <- survival::survreg(formula = TSEform, dist = tse_dist, data = tscontrol)
 
     AF <- exp(coef(mod))[names(exp(coef(mod))) == "switch_status"] # get acceleration factor
     tscontrol$counterfact <- ifelse(tscontrol$switch_status == 0,
@@ -1233,15 +1266,15 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
 
     tse[r] <- exp(coef(survival::coxph(survival::Surv(counterfact, status) ~ arm, data = tsdat)))
 
-    #########
+    ###
 
     # make KM estimates, censored
     tse_plot <- survminer::ggsurvplot(
       fit = survminer::surv_fit(survival::Surv(counterfact, status) ~ arm, data = tsdat),
       xlab = "Time",
       ylab = "OS",
-      title = "KM Plots for TSE", conf.int = TRUE) %++%
-      geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
+      title = "KM Plots for TSE", conf.int = TRUE) # %++%
+      # geom_hline(yintercept=0.5, linetype="dashed", size=0.1, alpha = 0.5)
 
 
     # TODO Recensor!
@@ -1268,7 +1301,7 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
 
 
 
-  # build boxplot dataset
+  # build boxplot dataset ####
   df <- data.frame(Unbiased = rep(NA, reps), ITT = NA, PP = NA, IPCW = NA, RPSFTM = NA, TSE = NA)
   df$Unbiased[1:length(unbiased)] <- unbiased
   df$ITT[1:length(itt)] <- itt
@@ -1276,25 +1309,31 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
   df$IPCW[1:length(msm_hr)] <-  msm_hr # TODO msm_hr no longer exists as a list, its now a vector
   df$RPSFTM[1:length(rpsft)] <- rpsft
   df$TSE[1:length(tse)] <- tse
-  df <- df %>% pivot_longer(names(df), names_to = "Method", values_to = "est") # df wide to long, for ggplot
+  df <- tidyr::pivot_longer(data = df, cols = names(df), names_to = "Method", values_to = "est") # df wide to long, for ggplot
   df$bias <- df$est - mean(df$est[df$Method=="Unbiased"])
-  compar_plot <- ggplot(df, aes(Method, est, color = Method)) + geom_boxplot() +
-    scale_color_brewer(palette = "Dark2") + theme_bw() + theme(axis.title.x=element_blank(),
-                                                               axis.text.x=element_blank(),
-                                                               axis.ticks.x=element_blank()) +
-    ylab("HR Estimate") +
-    ggtitle("HR Estimates Across Methods") +
-    geom_hline(yintercept=stats::median(unbiased), linetype="dashed", size=0.1, alpha = 0.5)
+  compar_plot <- ggplot2::ggplot(df, ggplot2::aes(Method, est, color = Method)) +
+    ggplot2::geom_boxplot() +
+    ggplot2::scale_color_brewer(palette = "Dark2") +
+    ggplot2::theme_bw() +
+    ggplot2::theme(axis.title.x = ggplot2::element_blank(),
+          axis.text.x = ggplot2::element_blank(),
+          axis.ticks.x = ggplot2::element_blank()) +
+    ggplot2::ylab("HR Estimate") +
+    ggplot2::ggtitle("HR Estimates Across Methods") +
+    ggplot2::geom_hline(yintercept=stats::median(unbiased), linetype="dashed", size=0.1, alpha = 0.5)
 
 
   # produce point-comparison estimate of bias.
-  bias_plot <- ggplot(df[df$Method != "Unbiased",], aes(Method, bias, color = Method)) + geom_boxplot() +
-    scale_color_brewer(palette = "Dark2") + theme_bw() + theme(axis.title.x=element_blank(),
-                                                               axis.text.x=element_blank(),
-                                                               axis.ticks.x=element_blank()) +
-    ylab("HR Estimate Bias") +
-    ggtitle("HR Estimate Bias Across Methods") +
-    geom_hline(yintercept=0, linetype="dashed", size=0.1, alpha = 0.5)
+  bias_plot <- ggplot2::ggplot(df[df$Method != "Unbiased",], ggplot2::aes(Method, bias, color = Method)) +
+    ggplot2::geom_boxplot() +
+    ggplot2::scale_color_brewer(palette = "Dark2") +
+    ggplot2::theme_bw() +
+    ggplot2::theme(axis.title.x = ggplot2::element_blank(),
+          axis.text.x = ggplot2::element_blank(),
+          axis.ticks.x = ggplot2::element_blank()) +
+    ggplot2::ylab("HR Estimate Bias") +
+    ggplot2::ggtitle("HR Estimate Bias Across Methods") +
+    ggplot2::geom_hline(yintercept=0, linetype="dashed", size=0.1, alpha = 0.5)
 
 
 
@@ -1319,7 +1358,7 @@ simswitchloop <- function(add_tvar, b_allowance, b_haz, b_mag, b_scale, b_shape,
              compar_plot = compar_plot,
              bias_plot = bias_plot,
              params = list(violate = violate, cens_flag = cens_flag, prop_cens = prop_cens,
-                           recens = recens, stime = stime, num_bvar = num_bvar, num_tvar = num_tvar,
+                           recens = recens, stime = stime, num_bvar = num_bvar, num_t = num_tvar,
                            hide_tvar = hide_tvar, add_tvar = add_tvar, n = n, rerun_lim = rerun_lim,
                            prop_trt = prop_trt, prop_switch = prop_switch, prop_cont_event = prop_cont_event, switch_coef = switch_coef, bcov = bcov,
                            covar_coef = covar_coef, s_haz = s_haz, s_allowance = s_allowance,
