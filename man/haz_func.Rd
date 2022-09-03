@@ -2,7 +2,7 @@
 % Please edit documentation in R/haz_func.R
 \name{haz_func}
 \alias{haz_func}
-\title{Title}
+\title{Define a default hazard function}
 \usage{
 haz_func(t, x, betas, b_haz, ncov = 0, ...)
 }
@@ -10,8 +10,8 @@ haz_func(t, x, betas, b_haz, ncov = 0, ...)
 \item{...}{}
 }
 \value{
-
+\code{haz_func()} returns a hazard at time \code{t}, given covariates \code{x}, baseline hazard \code{b_haz}, and coefficients \code{betas}
 }
 \description{
-Title
+Define a default hazard function
 }

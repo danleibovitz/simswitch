@@ -13,7 +13,7 @@
 #'
 #' @examples
 gen_bcov <- function(num_bvar, diags, middle, stime, n){
-  covariance <- matrix(data = runif(num_bvar^2, 0.1, 0.5), nrow = num_bvar)
+  covariance <- matrix(data = stats::runif(num_bvar^2, 0.1, 0.5), nrow = num_bvar)
   diag(covariance) <- 0.4
   covariance <- t(covariance) %*% covariance # force positive definite
   bcov <- as.data.frame((MASS::mvrnorm(n, rep.int(middle,num_bvar), covariance))) # generate baseline covariates for each patient

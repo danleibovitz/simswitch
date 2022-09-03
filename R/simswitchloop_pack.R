@@ -33,7 +33,7 @@
 
 # Set old classes and class unions
 
-setOldClass("ggsurvplot")
+# TODO this is failing: setOldClass("ggsurvplot")
 setOldClass("gg")
 setClassUnion("ggsurvplotOrNULL", c("ggsurvplot", "NULL"))
 
@@ -302,6 +302,16 @@ simswitch <- function(add_tvar = 0,
   }
   if(hide_tvar > (num_tvar-1) ) stop("can't hide more time-varying covariates than there are time-varying covariates, and time-varying cov M must always be kept.")
 
+  # TODO check that whatever function has been passed to argument 'dep' takes the right arguments
+  # TODO if(dep$arguments != ...){stop("dep() needs to take these arguments!")}
+  # dat = fulldat | data.frame, 40,000 x 12, names(fulldat) ==  [1] "ids"    "arm"    "switch" "time"   "treat"  "b1" "b2" "b3" "M" "v1" "v2" "Mtime"
+  # window = i, 1
+  # base_var=bcov_names, "b1" "b2" "b3"
+  # time_var=tcov_names, "M"  "v1" "v2"
+  # covar_coef = covar_coef, list(baseline, varying). baseline 3x3 (colsums = c(1,1,1)), varying 4x3
+  # m_haz = m_haz, vector 1x100, all positive
+  # num_t = num_tvar, 3
+  # tcov_n = tcov_names, "M"  "v1" "v2"
 
   # set giant while loop flag
   rerun <- TRUE
@@ -468,6 +478,7 @@ simswitch <- function(add_tvar = 0,
   # giant while loop should begin here. At this point, we have all parameters set, and a fulldat dataframe with no time
   # varying covariates, no switching and no secondary baseline
   # TODO if para == TRUE, parallelize here. Can these be done all in parallel (including the 1st rep, where conditions are particular) or is it sequential?
+  # TODO ... the fuck is going on in for(r in 1)?
   for(r in 1){
 
     if(r != 1) unfix <- c("B", "M", "S", "T") # if we have generated the first dataset, unfix all hazards
@@ -478,6 +489,15 @@ simswitch <- function(add_tvar = 0,
         # set covars
         fulldat[fulldat$time == i, names(fulldat) %in% c(tcov_names, "Mtime")] <-
           dep(dat = fulldat, window = i, base_var=bcov_names, time_var=tcov_names, covar_coef = covar_coef, m_haz = m_haz, num_t = num_tvar, tcov_n = tcov_names)
+        # dat = fulldat | data.frame, 40,000 x 12, names(fulldat) ==  [1] "ids"    "arm"    "switch" "time"   "treat"  "b1" "b2" "b3" "M" "v1" "v2" "Mtime"
+        # window = i, 1
+        # base_var=bcov_names, "b1" "b2" "b3"
+        # time_var=tcov_names, "M"  "v1" "v2"
+        # covar_coef = covar_coef, list(baseline, varying). baseline 3x3 (colsums = c(1,1,1)), varying 4x3
+        # m_haz = m_haz, vector 1x100, all positive
+        # num_t = num_tvar, 3
+        # tcov_n = tcov_names, "M"  "v1" "v2"
+
         # set treatment indicator
         if(i != 1){ # if its not the first time window
           fulldat$treat[fulldat$time == i] <- ifelse(fulldat$treat[fulldat$time == i-1] == 1, 1, 0) # if the previous window treat is 1, continue treatment
@@ -485,11 +505,11 @@ simswitch <- function(add_tvar = 0,
         # if treatment has not yet begun, probability of begining in the next window is a hazard function
         if(m_hard){
           fulldat$treat[fulldat$time == i & fulldat$treat == 0 & fulldat$Mtime > 0 & fulldat$Mtime <= ceiling(m_fidelity*stime)] <-
-            rbinom( n = length(fulldat$treat[fulldat$time == i & fulldat$treat == 0 & fulldat$Mtime > 0 & fulldat$Mtime <= ceiling(m_fidelity*stime)]), size = 1,
+            stats::rbinom( n = length(fulldat$treat[fulldat$time == i & fulldat$treat == 0 & fulldat$Mtime > 0 & fulldat$Mtime <= ceiling(m_fidelity*stime)]), size = 1,
                     prob = 1 - exp(-exp(log(s_haz[i]) +
                                           as.matrix(fulldat[fulldat$time == i & fulldat$treat == 0, names(fulldat) %in% c(bcov_names, tcov_names)]) %*% switch_coef))) # randomly assign the treat variable with probability
         }else{
-          fulldat$treat[fulldat$time == i & fulldat$treat == 0] <- rbinom( n = length(fulldat$treat[fulldat$time == i & fulldat$treat == 0]), size = 1,
+          fulldat$treat[fulldat$time == i & fulldat$treat == 0] <- stats::rbinom( n = length(fulldat$treat[fulldat$time == i & fulldat$treat == 0]), size = 1,
                                                                            prob = 1 - exp(-exp(log(s_haz[i]) +
                                                                                                  as.matrix(fulldat[fulldat$time == i & fulldat$treat == 0, names(fulldat) %in% c(bcov_names, tcov_names)]) %*% switch_coef))) # randomly assign the treat variable with probability
         }
@@ -903,11 +923,11 @@ simswitch <- function(add_tvar = 0,
         # if treatment has not yet begun, probability of begining in the next window is a hazard function
         if(m_hard){
           fulldat$treat[fulldat$time == i & fulldat$treat == 0 & fulldat$Mtime > 0 & fulldat$Mtime <= ceiling(m_fidelity*stime)] <-
-            rbinom( n = length(fulldat$treat[fulldat$time == i & fulldat$treat == 0 & fulldat$Mtime > 0 & fulldat$Mtime <= ceiling(m_fidelity*stime)]), size = 1,
+            stats::rbinom( n = length(fulldat$treat[fulldat$time == i & fulldat$treat == 0 & fulldat$Mtime > 0 & fulldat$Mtime <= ceiling(m_fidelity*stime)]), size = 1,
                     prob = 1 - exp(-exp(log(s_haz[i]) +
                                           as.matrix(fulldat[fulldat$time == i & fulldat$treat == 0, names(fulldat) %in% c(bcov_names, tcov_names)]) %*% switch_coef))) # randomly assign the treat variable with probability
         }else{
-          fulldat$treat[fulldat$time == i & fulldat$treat == 0] <- rbinom( n = length(fulldat$treat[fulldat$time == i & fulldat$treat == 0]), size = 1,
+          fulldat$treat[fulldat$time == i & fulldat$treat == 0] <- stats::rbinom( n = length(fulldat$treat[fulldat$time == i & fulldat$treat == 0]), size = 1,
                                                                            prob = 1 - exp(-exp(log(s_haz[i]) +
                                                                                                  as.matrix(fulldat[fulldat$time == i & fulldat$treat == 0, names(fulldat) %in% c(bcov_names, tcov_names)]) %*% switch_coef))) # randomly assign the treat variable with probability
         }
