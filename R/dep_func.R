@@ -47,6 +47,7 @@ dep_func <- function(dat, window, base_var, time_var, covar_coef, m_haz, num_t, 
   if(length(num_t) != some_length) stop("")
   if(length(tcov_names) != some_length) stop("")
 
+
   # TODO defend against incorrect argument ranges or absent specific values
   if(!all(c("time", "treat", "M", "Mtime", base_var, time_var) %in% names(dat))) {
     stop("'dat' data.frame must contain variables 'time', 'treat', 'M', 'Mtime', as well as all elements of
