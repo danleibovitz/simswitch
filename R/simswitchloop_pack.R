@@ -321,6 +321,7 @@ simswitch <- function(add_tvar = 0,
 
   # Build dataframe ####
 
+  # TODO this should be exported as a function, e.g., fulldat <- fd_generator()
   # Create patient id, randomization, and discrete time structure
   ids <- rep(1:n, each=stime) # specify participant ids
   time <- rep(1:stime, n)
@@ -360,6 +361,7 @@ simswitch <- function(add_tvar = 0,
 
   # set a default covar_coef list. If user defines their own dep_func, it must call covar_coef argument even if it doesnt use it
   if(missing(covar_coef)){
+    # TODO this should be exported as a function, e.g., covar_coef <- cc_generator()
     covar_coef <- list(baseline = matrix(sample(1:(num_bvar*num_tvar), num_bvar*num_tvar), ncol = num_tvar),
                        varying = matrix(sample(1:(num_tvar*(num_tvar+1)), num_tvar*(num_tvar+1)), ncol = num_tvar)) # add a coefficient row for the treatment effect
     # covar_coef$baseline[1,] <- covar_coef$baseline[1,] + num_bvar*num_tvar*0.25 # beef up effect of baseline predisposition on first covars
@@ -431,6 +433,7 @@ simswitch <- function(add_tvar = 0,
   }
 
   if(missing(beta.mat)){
+    # TODO this should be exported as a function, e.g., beta.mat <- bm_generator()
     beta.mat <- as.data.frame(matrix(nrow = stime, ncol = num_bvar + num_tvar + 2))
     names(beta.mat) <- c("time", "treat", bcov_names, tcov_names)
     beta.mat$time <- 1:stime
@@ -451,6 +454,8 @@ simswitch <- function(add_tvar = 0,
   if(verbose > 1){
     print("Setting baseline hazard function...")
   }
+
+  # TODO put back option for defining own haz_func(). Ensure that it has correct arguments
   # if(missing(haz)){
   #   haz <- haz # if user does not define a hazard function, use the default
   # }
