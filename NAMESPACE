@@ -2,9 +2,11 @@
 
 export("%>%")
 export(dep_func)
+export(fd_generator)
 export(gen_bcov)
 export(haz_func)
 export(simswitch)
+export(survive)
 export(weihaz)
 exportClasses(SwitchSimulation)
 exportMethods(plot)

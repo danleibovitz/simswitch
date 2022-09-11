@@ -1,27 +1,29 @@
 
 
-#' full (unadjusted) dataframe generator
+#' Full (unadjusted) dataframe generator
 #'
 #' @param n Number of patients
 #' @param stime Number of follow-up times
 #' @param prop_trt Proportion of \code{n} that is assigned to treatment
 #' @param id_trt Patient ids of patients assigned to treatment
-#' @param num_bvar
-#' @param bcov
-#' @param num_tvar
+#' @param num_bvar Number of baseline variables in returned data.frame
+#' @param bcov Data.frame of baseline variables, 1 per patient per follow-up time. Thus, dimensions are
+#' [stime*n]x[num_bvar]
+#' @param num_tvar Number of time-varying covariates in returned data.frame.
 #'
-#' @return a dataframe
+#' @return A data.frame with variables 'ids', 'arm', 'switch', 'time', 'treat', 'b1', 'b2', 'b3',
+#' 'M', 'v1', 'v2', "Mtime'
 #' @export
 #'
 #' @examples
 fd_generator <- function(
-    n,
-    stime,
-    prop_trt,
-    id_trt,
-    num_bvar,
     bcov,
-    num_tvar) {
+    id_trt,
+    n,
+    num_bvar,
+    num_tvar,
+    prop_trt,
+    stime) {
 
   # Defend against incorrect argument types
   if(class(n) != "integer") stop("'n' must be of class 'integer'")
@@ -38,7 +40,7 @@ fd_generator <- function(
   if(length(prop_trt) != 1) stop("'prop_trt' must be of length 1")
   if(length(num_bvar) != 1) stop("'num_bvar' must be of length 1")
   if(dim(bcov)[1] != stime*n | dim(bcov)[2] != num_bvar) stop("'bcov' must be of dimension [stime*n]x[num_bvar]")
-  if(length(num_tvar) != stime) stop("'num_tvar' must be of length 1")
+  if(length(num_tvar) != 1) stop("'num_tvar' must be of length 1")
 
   ids <- rep(1:n, each=stime) # specify participant ids
   time <- rep(1:stime, n)

@@ -2,16 +2,29 @@
 % Please edit documentation in R/dep_func.R
 \name{dep_func}
 \alias{dep_func}
-\title{Title}
+\title{THe default 'dependent' function, which takes the current dataset, pre-specified parameters and 'time' i to
+return time-varying covariates, treatment decision and switch decision at 'time' i}
 \usage{
 dep_func(dat, window, base_var, time_var, covar_coef, m_haz, num_t, tcov_n)
 }
 \arguments{
+\item{dat}{The full data-frame. Must have variables "ids", "arm", "switch", "time", "treat", "Mtime",
+and all variables in arguments 'base_var' and 'time_var'}
+
+\item{window}{An integer, representing the time to return values for}
+
+\item{base_var}{A vector of names of baseline variables}
+
+\item{time_var}{A vector of names of time-varying variables}
+
+\item{m_haz}{A vector of hazards of length equal to the range of values in \code{dat$time}}
+
 \item{tcov_n}{}
 }
 \value{
-
+# should return a binary variable for M, and continuous for all other tvar
 }
 \description{
-Title
+THe default 'dependent' function, which takes the current dataset, pre-specified parameters and 'time' i to
+return time-varying covariates, treatment decision and switch decision at 'time' i
 }

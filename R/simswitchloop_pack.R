@@ -33,7 +33,8 @@
 
 # Set old classes and class unions
 
-# TODO this is failing: setOldClass("ggsurvplot")
+# TODO setting old class 'ggsurvplot' is failing
+setOldClass("ggsurvplot")
 setOldClass("gg")
 setClassUnion("ggsurvplotOrNULL", c("ggsurvplot", "NULL"))
 
@@ -292,6 +293,8 @@ simswitch <- function(add_tvar = 0,
   }
 
 
+  n <- as.integer(n)
+  stime <- as.integer(stime)
   num_bvar <- as.integer(num_bvar)
   num_tvar <- as.integer(num_tvar)
   if(num_tvar < 1) stop("Must have at least 1 time-varying covariate")

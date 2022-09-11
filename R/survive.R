@@ -3,28 +3,30 @@
 
 #' Title
 #'
-#' @param x
-#' @param hazard
-#' @param betas
-#' @param ncov
-#' @param stime
-#' @param idvar
-#' @param ids
-#' @param b_haz
+#' @param x A data.frame resulting from a call to fd_generator()
+#' @param hazard A hazard generating function. The default is haz_func(). The function must take arguments:
+#' t, x, betas, b_haz, and ncov. For details, see the documentation of haz_func()
+#' @param betas A data.frame with length equal to the length of 'x', and width equal to (ncov + 3)
+#' @param ncov The number of covariates (the number of baseline covariates plus the number of time-varying covariates)
+#' @param stime The number of follow-up times
+#' @param idvar The name of the variable in 'x' which holds patient ids.
+#' @param ids Patient ids.
+#' @param b_haz A vector of "baseline hazards" for all patients, with length equal to 'stime'
 #'
 #' @return
 #' @export
 #'
 #' @examples
 survive <- function(
-    x,
-    hazard,
+    b_haz,
     betas,
+    hazard,
+    ids,
+    idvar,
+    n,
     ncov,
     stime,
-    idvar,
-    ids,
-    b_haz) {
+    x) {
 
   # sdat <- survive( x = fulldat, hazard = haz, betas = beta.mat, ncov = (num_bvar + num_tvar), stime = stime, idvar = "ids", ids = unique(fulldat$ids),
   #                 b_haz = b_haz)
@@ -32,27 +34,25 @@ survive <- function(
   if(class(x) != "data.frame") stop("'x' must be of class 'data.frame'")
   if(class(hazard) != "function") stop("'hazard' must be of class 'function'")
   if(class(betas) != "data.frame") stop("'betas' must be of class 'data.frame'")
-  if(class(ncov) != ) stop("'ncov' must be of class _")
+  if(class(ncov) != "integer") stop("'ncov' must be of class 'integer'")
   if(class(stime) != "integer") stop("'stime' must be of class 'integer'")
-  if(class(idvar) != ) stop("'idvar' must be of class _")
-  if(class(ids) != ) stop("'ids' must be of class _")
+  if(class(idvar) != "character") stop("'idvar' must be of class 'character'")
+  if(class(ids) != "integer") stop("'ids' must be of class 'integer'")
   if(class(b_haz) != "numeric") stop("'b_haz' must be of class 'numeric'")
 
   # Defend against incorrect argument dimensions
-  if(dim(x) != ) stop("'x' must be of class _")
-  if(dim(betas) != ) stop("'betas' must be of dim _")
-  if(dim(ncov) != ) stop("'ncov' must be of dim _")
+  if(dim(x) != stime*n) stop("'x' must be of dim [stime*n]x[ncov+6]")
+  if(dim(betas) != ncov + 3) stop("'betas' must be of dim (ncov + 3)")
   if(length(stime) != 1) stop("'stime' must be of length 1")
-  if(dim(idvar) != ) stop("'idvar' must be of dim _")
-  if(dim(ids) != ) stop("'ids' must be of dim _")
-  if(length(b_haz) != stime) stop("'b_haz' must be of length equal to \code{stime}")
+  if(length(idvar) != 1) stop("'idvar' must be of length 1")
+  if(length(ids) != stime*n) stop("'ids' must be of length (stime*n)")
+  if(length(b_haz) != stime) stop("'b_haz' must be of length equal to stime")
 
   # Defend against hazard() function with incorrect arguments
   # TODO how do you check for the arguments a function takes?
   if(args(hazard) != c("t", "x", "betas", "b_haz", "ncov")) stop("'hazard' must accept arguments:
                                                                  't', 'x', 'betas', 'b_haz', 'ncov'")
 
-  n <- length(ids)
   store <- ids # create repository of patients with unobserved events
   df <- data.frame(ids = ids, eventtime = rep.int(0, n), status = rep.int(0, n)) # create response dataframe
   i <- 1 # set iterator

@@ -10,7 +10,8 @@ haz_func(t, x, betas, b_haz, ncov = 0, ...)
 \item{...}{}
 }
 \value{
-\code{haz_func()} returns a hazard at time \code{t}, given covariates \code{x}, baseline hazard \code{b_haz}, and coefficients \code{betas}
+\code{haz_func()} returns a hazard at time \code{t}, given covariates \code{x},
+baseline hazard \code{b_haz}, and coefficients \code{betas}
 }
 \description{
 Define a default hazard function
