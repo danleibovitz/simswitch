@@ -1,14 +1,5 @@
 
 # Define test arguments
-
-# if(class(n) != "integer") stop("'n' must be of class 'integer'")
-# if(class(stime) != "integer") stop("'stime' must be of class 'integer'")
-# if(class(prop_trt) != "numeric") stop("'prop_trt' must be of class 'numeric'")
-# if(class(id_trt) != "integer") stop("'id_trt' must be of class 'integer'")
-# if(class(num_bvar) != "integer") stop("'num_bvar' must be of class 'integer'")
-# if(class(bcov) != "data.frame") stop("'bcov' must be of class 'data.frame")
-# if(class(num_tvar) != "integer") stop("'num_tvar' must be of class 'integer'")
-
 en            <- as.integer(10)
 number_b      <- as.integer(4)
 number_t      <- as.integer(4)
