@@ -324,6 +324,7 @@ simswitch <- function(add_tvar = 0,
 
   # Build dataframe ####
 
+  #### ####
   # TODO this should be exported as a function, e.g., fulldat <- fd_generator()
   # Create patient id, randomization, and discrete time structure
   ids <- rep(1:n, each=stime) # specify participant ids
@@ -361,6 +362,7 @@ simswitch <- function(add_tvar = 0,
   fulldat <- cbind(xdat, bcov, tcov) # merge covariate and treatment data
   fulldat$Mtime <- 0 # add variablre for time since beginning of M
   fulldat_cont <- fulldat # set a control group, where there is no time-dependent confounding
+  #### ####
 
   # set a default covar_coef list. If user defines their own dep_func, it must call covar_coef argument even if it doesnt use it
   if(missing(covar_coef)){
