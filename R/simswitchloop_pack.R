@@ -343,7 +343,7 @@ simswitch <- function(add_tvar = 0,
 
   # set random covariates, number equal to num_bvar
   if(missing(bcov)){ # if a baseline covariate matrix is not specified, generate a random one
-    bcov <- gen_bcov(num_bvar = num_bvar, diags = 0.4, middle = 1, stime = stime, n = n)
+    bcov <- bcov_generator(num_bvar = num_bvar, diags = 0.4, middle = 1, stime = stime, n = n)
     } else{
     if(dim(bcov)[1] != (n*stime) | dim(bcov)[2] != num_bvar) stop("a pre-specified baseline covariate matrix must have length equal to (number of patients)*(stime) and width equal to num_bvar")
   }
@@ -572,6 +572,7 @@ simswitch <- function(add_tvar = 0,
 
       # censor at prespecified, non-administrative censoring time. Censoring will have been generated independently of covars, or dependent on covars
       if(cens_flag == "Random"){
+        # TODO define a censoring function, e.g., rc_generator()
         fulldat$cens <- stime # set default censoring time
         fulldat_cont$cens <- stime # set default censoring time
 
@@ -741,6 +742,7 @@ simswitch <- function(add_tvar = 0,
 
     ## IPCW ##
     if(!ipcw_exclude){
+      # TODO write ipcw analysis funciton, e.g., ipcw_analyze()
     fulldat$starttime <- fulldat$time - 1 # add starttime
     fulldat$switch_time <- rep(sapply(unique(fulldat$ids), function(x) ifelse( # get first
       fulldat$arm[fulldat$ids == x][1] == 0 & fulldat$switch_status[fulldat$ids == x][1] == 1, # if id is a control pt. and observes switch,
@@ -790,6 +792,7 @@ simswitch <- function(add_tvar = 0,
     }
     ## RPSFTM ##
 
+    # TODO write RPSFTM analysis function, e.g., rpsftm_analyze()
     # get proportion of treatment per patient
     rx <- sapply(unique(fulldat$ids), function(x) sum(fulldat$treat[fulldat$ids == x & fulldat$time <= fulldat$eventtime])/
                    fulldat$eventtime[fulldat$ids==x & fulldat$time==1])
@@ -826,6 +829,7 @@ simswitch <- function(add_tvar = 0,
     }
     ## TSE ##
 
+    # TODO write TSE analysis function, i.e., tse_analyze()
     tsdat <- fulldat[fulldat$time == 1,] # Holder for wide format
     tscontrol <- fulldat[fulldat$secbase_observed == 1 & fulldat$arm == 0 & fulldat$Mtime == 1,] # take subset of pts who observe M and who are in arm == 0
     #tscontrol <- tscontrol[tscontrol$time < tscontrol$eventtime,] # subset again, removing pts who observe M (secondary baseline) after eventtime
