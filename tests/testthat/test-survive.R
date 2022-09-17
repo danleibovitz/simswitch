@@ -10,14 +10,19 @@
 #'
 
 # Define test arguments
-ex <- fd_generator()
-h <- haz_func
-bs <-
-nc <- 4
+np <- 6
+nbc <- 2
+ntc <- 2
 st <- 10
+pt <- 0.5
+v <- violate # TODO
 idv <- "ids"
 is <- unique(x$ids)
-bh <- weihaz()
+bh <- weihaz(scale = 0.5, shape = 0.5, x = 1:st)
+ex <- fd_generator(bcov = , id_trt = , n = np, num_bvar = nbc, num_tvar = ntc, prop_trt = pt, stime = st)
+h <- haz_func
+bs <- bm_generator(stime = st, num_bvar = nbc, num_tvar = ntc, bcov_names = ,
+                   tcov_names = , treat_beta = , violate = , n = np)
 
 # test that incorrect argument types throw errors ####
 test_that("Incorrect 'x' argument throws error", {
@@ -99,7 +104,7 @@ test_that("Incorrect 'b_haz' argument dimension throws error", {
 })
 
 # test that results of correct type and dimension are returned ####
-test_that("Incorrect 'b_haz' argument dimension throws error", {
+test_that("Correc function call returns correct class", {
   expect_equal(
     class(survive(x = ex, hazard = h, betas = bs, ncov = nc, stime = st, idvar = idv, ids = is, b_haz = bh)),
       "data.frame"
