@@ -17,7 +17,7 @@
 #' @export
 #'
 #' @examples
-survive <- function(
+survtime_generator <- function(
     b_haz,
     betas,
     hazard,
@@ -28,7 +28,7 @@ survive <- function(
     stime,
     x) {
 
-  # sdat <- survive( x = fulldat, hazard = haz, betas = beta.mat, ncov = (num_bvar + num_tvar), stime = stime, idvar = "ids", ids = unique(fulldat$ids),
+  # sdat <- survtime_generator( x = fulldat, hazard = haz, betas = beta.mat, ncov = (num_bvar + num_tvar), stime = stime, idvar = "ids", ids = unique(fulldat$ids),
   #                 b_haz = b_haz)
   # Defend against incorrect argument types
   if(class(x) != "data.frame") stop("'x' must be of class 'data.frame'")
