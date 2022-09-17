@@ -2,16 +2,16 @@
 
 #' Generate matrix of coefficients for survival time generation
 #'
-#' @param stime
-#' @param num_bvar
-#' @param num_tvar
-#' @param bcov_names
-#' @param tcov_names
-#' @param treat_beta
-#' @param violate
-#' @param n
+#' @param stime Follow-up time for coefficient matrix
+#' @param num_bvar Number of baseline coefficients
+#' @param num_tvar Number of time-varying coefficients
+#' @param bcov_names Names of baseline variables
+#' @param tcov_names Names of time-varying variables
+#' @param treat_beta Treatment coefficient
+#' @param violate Tag for violation of estimation assumptions
+#' @param n Number of patients
 #'
-#' @return
+#' @return A matrix of dimension [n*stime]x[num_tvar + num_bvar + 2]
 #' @export
 #'
 #' @examples
@@ -24,7 +24,6 @@ bm_generator <- function(
     treat_beta,
     violate,
     n) {
-  # TODO this should be exported as a function, e.g., beta.mat <- bm_generator()
   beta.mat <- as.data.frame(matrix(nrow = stime, ncol = num_bvar + num_tvar + 2))
   names(beta.mat) <- c("time", "treat", bcov_names, tcov_names)
   beta.mat$time <- 1:stime
