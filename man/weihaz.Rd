@@ -2,16 +2,20 @@
 % Please edit documentation in R/weihaz.R
 \name{weihaz}
 \alias{weihaz}
-\title{Title}
+\title{A hazard generator for a weibull distribution}
 \usage{
-weihaz(x, shape, scale)
+weihaz(scale, shape, x)
 }
 \arguments{
-\item{scale}{}
+\item{scale}{The scale parameter}
+
+\item{shape}{The shape parameter}
+
+\item{x}{A vector of positive real numbers at which to evaluate the hazard}
 }
 \value{
-
+A vector of hazards evaluated at each element of argument 'x'
 }
 \description{
-Title
+A hazard generator for a weibull distribution
 }
