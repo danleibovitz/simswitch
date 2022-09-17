@@ -539,14 +539,14 @@ simswitch <- function(add_tvar = 0,
         print("Generating confounded survival times...")
       }
 
-      sdat <- survive( x = fulldat, hazard = haz, betas = beta.mat, ncov = (num_bvar + num_tvar), stime = stime, idvar = "ids", ids = unique(fulldat$ids),
+      sdat <- survtime_generator( x = fulldat, hazard = haz, betas = beta.mat, ncov = (num_bvar + num_tvar), stime = stime, idvar = "ids", ids = unique(fulldat$ids),
                        b_haz = b_haz)
 
       if(verbose > 1){
         print("Generating un-confounded survival times...")
       }
 
-      sdat_cont <- survive( x = fulldat_cont[fulldat_cont$arm == 0,], hazard = haz, betas = beta.mat[fulldat_cont$arm == 0,], ncov = (num_bvar + num_tvar), stime = stime, idvar = "ids", ids = unique(fulldat_cont$ids[fulldat_cont$arm==0]),
+      sdat_cont <- survtime_generator( x = fulldat_cont[fulldat_cont$arm == 0,], hazard = haz, betas = beta.mat[fulldat_cont$arm == 0,], ncov = (num_bvar + num_tvar), stime = stime, idvar = "ids", ids = unique(fulldat_cont$ids[fulldat_cont$arm==0]),
                             b_haz = b_haz)
 
 
@@ -961,14 +961,14 @@ simswitch <- function(add_tvar = 0,
         print("Generating confounded survival times...")
       }
 
-      sdat <- survive( x = fulldat, hazard = haz, betas = beta.mat, ncov = (num_bvar + num_tvar), stime = stime, idvar = "ids", ids = unique(fulldat$ids),
+      sdat <- survtime_generator( x = fulldat, hazard = haz, betas = beta.mat, ncov = (num_bvar + num_tvar), stime = stime, idvar = "ids", ids = unique(fulldat$ids),
                        b_haz = b_haz)
 
       if(verbose > 1){
         print("Generating un-confounded survival times...")
       }
 
-      sdat_cont <- survive( x = fulldat_cont[fulldat_cont$arm == 0,], hazard = haz, betas = beta.mat[fulldat_cont$arm == 0,], ncov = (num_bvar + num_tvar), stime = stime, idvar = "ids", ids = unique(fulldat_cont$ids[fulldat_cont$arm==0]),
+      sdat_cont <- survtime_generator( x = fulldat_cont[fulldat_cont$arm == 0,], hazard = haz, betas = beta.mat[fulldat_cont$arm == 0,], ncov = (num_bvar + num_tvar), stime = stime, idvar = "ids", ids = unique(fulldat_cont$ids[fulldat_cont$arm==0]),
                             b_haz = b_haz)
 
 
