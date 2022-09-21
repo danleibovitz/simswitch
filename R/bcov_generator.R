@@ -19,17 +19,24 @@ bcov_generator <- function(
     n) {
 
   # defend against incorrect argument classes
-  if(class(num_bvar) != "numeric") stop()
-  if(class(diags) != "numeric") stop()
-  if(class(middle) != "numeric") stop()
-  if(class(stime) != "numeric") stop()
-  if(class(n) != "numeric") stop()
+  if(class(num_bvar) != "numeric") stop("'num_bvar' must be of class 'numeric'")
+  if(class(diags) != "numeric") stop("'diags' must be of class 'numeric'")
+  if(class(middle) != "numeric") stop("'middle' must be of class 'numeric'")
+  if(class(stime) != "numeric") stop("'stime' must be of class 'numeric'")
+  if(class(n) != "numeric") stop("'n' must be of class 'numeric'")
+
+  # defend against incorrect dimension
+  if(length(num_bvar) != 1) stop("'num_bvar' must be of length 1")
+  if(length(diags) != 1) stop("'diags' must be of length 1")
+  if(length(middle) != 1) stop("'middle' must be of length 1")
+  if(length(stime) != 1) stop("'stime' must be of length 1")
+  if(length(n) != 1) stop("'n' must be of length 1")
 
   # defend against incorrect argument range
-  if(num_bvar <1) stop()
-  if(diags <= 0 | diags >= 1) stop()
-  if(stime < 1) stop()
-  if(n < 1) stop()
+  if(num_bvar <1) stop("'num_bvar' must be a positive integer")
+  if(diags <= 0 | diags >= 1) stop("'diags' must be between 0 and 1")
+  if(stime < 1) stop("'stime' must be a positive integer")
+  if(n < 1) stop("'n' must be a positive integer")
 
 
   covariance <- matrix(data = stats::runif(num_bvar^2, 0.1, 0.5), nrow = num_bvar)
