@@ -68,3 +68,10 @@ test_that("Correc function call returns correct class", {
     "data.frame"
   )
 })
+test_that("Correc function call returns correct dimension", {
+  expect_equal(
+    dim(bcov_generator(num_bvar = nb, diags = ds, middle = md, stime = st, n = en)),
+    c(en*st, nb)
+  )
+})
+
