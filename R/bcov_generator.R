@@ -18,6 +18,20 @@ bcov_generator <- function(
     stime,
     n) {
 
+  # defend against incorrect argument classes
+  if(class(num_bvar) != "numeric") stop()
+  if(class(diags) != "numeric") stop()
+  if(class(middle) != "numeric") stop()
+  if(class(stime) != "numeric") stop()
+  if(class(n) != "numeric") stop()
+
+  # defend against incorrect argument range
+  if(num_bvar <1) stop()
+  if(diags <= 0 | diags >= 1) stop()
+  if(stime < 1) stop()
+  if(n < 1) stop()
+
+
   covariance <- matrix(data = stats::runif(num_bvar^2, 0.1, 0.5), nrow = num_bvar)
   diag(covariance) <- diags
   covariance <- t(covariance) %*% covariance # force positive definite
