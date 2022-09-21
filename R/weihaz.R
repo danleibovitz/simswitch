@@ -9,9 +9,9 @@
 #'
 #' @examples
 weihaz <- function(
-    scale,
+    x,
     shape,
-    x) {
+    scale) {
 
   # Defend against incorrect argument types
   if (class(shape) != "numeric" & class(shape) != "integer") stop("shape parameter must be numeric")
