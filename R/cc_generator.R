@@ -1,6 +1,6 @@
 
 
-#' Generate time
+#' Generate matrix of coefficients for generation of time-varying covariates
 #'
 #' @param numb Number of baseline covariates
 #' @param numt Number of time-varying covariates
