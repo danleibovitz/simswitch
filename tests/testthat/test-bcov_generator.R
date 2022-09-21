@@ -34,11 +34,32 @@ test_that("Incorrect 'en' argument throws error", {
 })
 
 # test incorrect argument dimensions throw errors ####
-test_that("Incorrect 'b_haz' argument dimension throws error", {
+test_that("Incorrect 'num_bvar' dimension throws error", {
   expect_error(
-    bcov_generator(num_bvar = nb, diags = ds, middle = md, stime = st, n = en)
+    bcov_generator(num_bvar = c(nb, nb), diags = ds, middle = md, stime = st, n = en)
   )
 })
+test_that("Incorrect 'diags' dimension throws error", {
+  expect_error(
+    bcov_generator(num_bvar = nb, diags = c(ds, ds), middle = md, stime = st, n = en)
+  )
+})
+test_that("Incorrect 'middle' dimension throws error", {
+  expect_error(
+    bcov_generator(num_bvar = nb, diags = ds, middle = c(md, md), stime = st, n = en)
+  )
+})
+test_that("Incorrect 'stime' dimension throws error", {
+  expect_error(
+    bcov_generator(num_bvar = nb, diags = ds, middle = md, stime = c(st, st), n = en)
+  )
+})
+test_that("Incorrect 'n' dimension throws error", {
+  expect_error(
+    bcov_generator(num_bvar = nb, diags = ds, middle = md, stime = st, n = c(en, en))
+  )
+})
+
 
 # test that results of correct type and dimension are returned ####
 test_that("Correc function call returns correct class", {
