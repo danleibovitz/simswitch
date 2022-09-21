@@ -1,4 +1,3 @@
-# generate bcov (baseline covariates)
 
 #' Generate a matrix of baseline covariates
 #'
@@ -12,7 +11,7 @@
 #' @export
 #'
 #' @examples
-gen_bcov <- function(
+bcov_generator <- function(
     num_bvar,
     diags,
     middle,
