@@ -343,7 +343,9 @@ simswitch <- function(add_tvar = 0,
 
   # set random covariates, number equal to num_bvar
   if(missing(bcov)){ # if a baseline covariate matrix is not specified, generate a random one
-    bcov <- bcov_generator(num_bvar = num_bvar, diags = 0.4, middle = 1, stime = stime, n = n)
+    bcov <- bcov_generator(num_bvar = num_bvar,
+                           # TODO (remove this arg?:) diags = 0.4,
+                           middle = 1, stime = stime, n = n)
     } else{
     if(dim(bcov)[1] != (n*stime) | dim(bcov)[2] != num_bvar) stop("a pre-specified baseline covariate matrix must have length equal to (number of patients)*(stime) and width equal to num_bvar")
   }
