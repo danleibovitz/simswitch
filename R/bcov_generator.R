@@ -1,19 +1,18 @@
 
 #' Generate a matrix of baseline covariates
 #'
-#' @param num_bvar
-#' @param diags
-#' @param middle
-#' @param stime
-#' @param n
+#' @param num_bvar Number of baseline variables
+#' @param middle Mean of multivariate normal, which generates covariates
+#' @param stime Length of follow-up time
+#' @param n Number of patients
 #'
-#' @return
+#' @return A data.frame with dimension [n*stime]x[num_bvar]
 #' @export
 #'
 #' @examples
 bcov_generator <- function(
     num_bvar,
-    diags,
+# TODO (remove this arg?:)    diags,
     middle,
     stime,
     n) {
