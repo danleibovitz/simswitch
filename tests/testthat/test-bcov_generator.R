@@ -7,9 +7,29 @@ st <- 10
 en <- 8
 
 # test that incorrect argument types throw errors ####
-test_that("Incorrect 'b_haz' argument throws error", {
+test_that("Incorrect 'nb' argument throws error", {
   expect_error(
-    bcov_generator(num_bvar = nb, diags = ds, middle = md, stime = st, n = en)
+    bcov_generator(num_bvar = "nb", diags = ds, middle = md, stime = st, n = en)
+  )
+})
+test_that("Incorrect 'ds' argument throws error", {
+  expect_error(
+    bcov_generator(num_bvar = nb, diags = "ds", middle = md, stime = st, n = en)
+  )
+})
+test_that("Incorrect 'md' argument throws error", {
+  expect_error(
+    bcov_generator(num_bvar = nb, diags = ds, middle = "md", stime = st, n = en)
+  )
+})
+test_that("Incorrect 'st' argument throws error", {
+  expect_error(
+    bcov_generator(num_bvar = nb, diags = ds, middle = md, stime = "st", n = en)
+  )
+})
+test_that("Incorrect 'en' argument throws error", {
+  expect_error(
+    bcov_generator(num_bvar = nb, diags = ds, middle = md, stime = st, n = "en")
   )
 })
 
