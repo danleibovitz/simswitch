@@ -2,6 +2,8 @@
 
 #' Full (unadjusted) dataframe generator
 #'
+#' Used directly by function simswitch()
+#'
 #' @param n Number of patients
 #' @param stime Number of follow-up times
 #' @param prop_trt Proportion of \code{n} that is assigned to treatment
